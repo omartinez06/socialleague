@@ -53,4 +53,9 @@ public class PlayerController {
 		return playerService.getPlayerById(id);
 	}
 
+	@PutMapping("line/{id}")
+	public ResponseEntity<Player> addLine(@PathVariable long id, @RequestBody int lineValue) throws Exception {
+		return playerService.addLine(id, lineValue);
+	}
+
 }

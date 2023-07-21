@@ -105,7 +105,7 @@ public class PlayerServiceImp implements IPlayerService {
 	}
 
 	@Override
-	public void addLine(long id, int lineValue) throws Exception {
+	public ResponseEntity<Player> addLine(long id, int lineValue) throws Exception {
 		final String methodName = "addLine()";
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
@@ -125,6 +125,7 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setHandicap(handicap);
 		playerRepository.save(player);
 		logger.debug("{} - End", methodName);
+		return ResponseEntity.ok(player);
 	}
 
 }

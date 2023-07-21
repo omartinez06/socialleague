@@ -20,6 +20,6 @@ public interface IPlayerService {
 
 	ResponseEntity<Player> getPlayerById(long id) throws Exception;
 
-	void addLine(long id, int lineValue) throws Exception;
+	ResponseEntity<Player> addLine(long id, int lineValue) throws Exception;
 
 }
