@@ -47,7 +47,7 @@ public class UserServiceImp implements IUserService {
 	@Override
 	public ResponseEntity<?> createUser(UserDTO user) {
 		Set<Role> authorities = new HashSet<Role>();
-		Role defaultRole = roleRepository.findRoleByName("USER");
+		Role defaultRole = roleRepository.findRoleByName("ADMIN");
 		authorities.add(defaultRole);
 
 		User newUser = User.builder().username(user.getUsername()).password(passwordEncoder.encode(user.getPassword()))
