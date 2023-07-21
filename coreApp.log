@@ -1,0 +1,71 @@
+2023-07-17 20:51:07,925 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Starting SocialleagueApplication using Java 17.0.6 on oscarmartinez-Latitude-5590 with PID 11369 (/home/oscarmartinez/ProyectoMetroBowl/socialleague/bin/main started by oscarmartinez in /home/oscarmartinez/ProyectoMetroBowl/socialleague)
+2023-07-17 20:51:07,927 DEBUG com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Running with Spring Boot v2.7.14-SNAPSHOT, Spring v5.3.29
+2023-07-17 20:51:07,928 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] No active profile set, falling back to 1 default profile: "default"
+2023-07-17 20:51:09,096 INFO org.apache.catalina.core.StandardService [restartedMain] Starting service [Tomcat]
+2023-07-17 20:51:09,096 INFO org.apache.catalina.core.StandardEngine [restartedMain] Starting Servlet engine: [Apache Tomcat/9.0.78]
+2023-07-17 20:51:09,152 INFO org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] [restartedMain] Initializing Spring embedded WebApplicationContext
+2023-07-17 20:51:09,319 INFO org.hibernate.jpa.internal.util.LogHelper [restartedMain] HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-07-17 20:51:09,360 INFO org.hibernate.Version [restartedMain] HHH000412: Hibernate ORM core version 5.6.15.Final
+2023-07-17 20:51:09,495 INFO org.hibernate.annotations.common.Version [restartedMain] HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-07-17 20:51:09,565 INFO com.zaxxer.hikari.HikariDataSource [restartedMain] HikariPool-1 - Starting...
+2023-07-17 20:51:09,645 INFO com.zaxxer.hikari.HikariDataSource [restartedMain] HikariPool-1 - Start completed.
+2023-07-17 20:51:09,655 INFO org.hibernate.dialect.Dialect [restartedMain] HHH000400: Using dialect: com.oscarmartinez.socialleague.sqlite.SQLDialect
+2023-07-17 20:51:10,214 INFO org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator [restartedMain] HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-07-17 20:51:10,532 DEBUG com.oscarmartinez.socialleague.security.JwtAuthTokenFilter [restartedMain] Filter 'authenticationJwtTokenFilter' configured for use
+2023-07-17 20:51:11,060 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Started SocialleagueApplication in 3.447 seconds (JVM running for 4.158)
+2023-07-20 20:18:17,955 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Starting SocialleagueApplication using Java 17.0.6 on oscarmartinez-Latitude-5590 with PID 8395 (/home/oscarmartinez/ProyectoMetroBowl/socialleague/bin/main started by oscarmartinez in /home/oscarmartinez/ProyectoMetroBowl/socialleague)
+2023-07-20 20:18:17,956 DEBUG com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Running with Spring Boot v2.7.14-SNAPSHOT, Spring v5.3.29
+2023-07-20 20:18:17,956 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] No active profile set, falling back to 1 default profile: "default"
+2023-07-20 20:18:18,960 INFO org.apache.catalina.core.StandardService [restartedMain] Starting service [Tomcat]
+2023-07-20 20:18:18,961 INFO org.apache.catalina.core.StandardEngine [restartedMain] Starting Servlet engine: [Apache Tomcat/9.0.78]
+2023-07-20 20:18:19,013 INFO org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] [restartedMain] Initializing Spring embedded WebApplicationContext
+2023-07-20 20:18:19,161 INFO org.hibernate.jpa.internal.util.LogHelper [restartedMain] HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-07-20 20:18:19,191 INFO org.hibernate.Version [restartedMain] HHH000412: Hibernate ORM core version 5.6.15.Final
+2023-07-20 20:18:19,292 INFO org.hibernate.annotations.common.Version [restartedMain] HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-07-20 20:18:19,362 INFO com.zaxxer.hikari.HikariDataSource [restartedMain] HikariPool-1 - Starting...
+2023-07-20 20:18:19,451 INFO com.zaxxer.hikari.HikariDataSource [restartedMain] HikariPool-1 - Start completed.
+2023-07-20 20:18:19,462 INFO org.hibernate.dialect.Dialect [restartedMain] HHH000400: Using dialect: com.oscarmartinez.socialleague.sqlite.SQLDialect
+2023-07-20 20:18:19,910 INFO org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator [restartedMain] HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-07-20 20:18:20,229 DEBUG com.oscarmartinez.socialleague.security.JwtAuthTokenFilter [restartedMain] Filter 'authenticationJwtTokenFilter' configured for use
+2023-07-20 20:18:20,747 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Started SocialleagueApplication in 3.078 seconds (JVM running for 3.57)
+2023-07-20 20:18:32,052 INFO org.apache.catalina.core.StandardService [RMI TCP Connection(8)-127.0.0.1] Stopping service [Tomcat]
+2023-07-20 20:18:32,055 WARN org.apache.catalina.loader.WebappClassLoaderBase [RMI TCP Connection(8)-127.0.0.1] The web application [ROOT] appears to have started a thread named [HikariPool-1 housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.6/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.6/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+ java.base@17.0.6/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+ java.base@17.0.6/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+ java.base@17.0.6/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.6/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.6/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.6/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.6/java.lang.Thread.run(Thread.java:833)
+2023-07-20 20:18:32,063 INFO com.zaxxer.hikari.HikariDataSource [RMI TCP Connection(8)-127.0.0.1] HikariPool-1 - Shutdown initiated...
+2023-07-20 20:18:32,065 INFO com.zaxxer.hikari.HikariDataSource [RMI TCP Connection(8)-127.0.0.1] HikariPool-1 - Shutdown completed.
+2023-07-20 20:18:40,348 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Starting SocialleagueApplication using Java 17.0.6 on oscarmartinez-Latitude-5590 with PID 8493 (/home/oscarmartinez/ProyectoMetroBowl/socialleague/bin/main started by oscarmartinez in /home/oscarmartinez/ProyectoMetroBowl/socialleague)
+2023-07-20 20:18:40,348 DEBUG com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Running with Spring Boot v2.7.14-SNAPSHOT, Spring v5.3.29
+2023-07-20 20:18:40,349 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] No active profile set, falling back to 1 default profile: "default"
+2023-07-20 20:18:41,302 INFO org.apache.catalina.core.StandardService [restartedMain] Starting service [Tomcat]
+2023-07-20 20:18:41,303 INFO org.apache.catalina.core.StandardEngine [restartedMain] Starting Servlet engine: [Apache Tomcat/9.0.78]
+2023-07-20 20:18:41,351 INFO org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] [restartedMain] Initializing Spring embedded WebApplicationContext
+2023-07-20 20:18:41,497 INFO org.hibernate.jpa.internal.util.LogHelper [restartedMain] HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-07-20 20:18:41,529 INFO org.hibernate.Version [restartedMain] HHH000412: Hibernate ORM core version 5.6.15.Final
+2023-07-20 20:18:41,629 INFO org.hibernate.annotations.common.Version [restartedMain] HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-07-20 20:18:41,685 INFO com.zaxxer.hikari.HikariDataSource [restartedMain] HikariPool-1 - Starting...
+2023-07-20 20:18:41,770 INFO com.zaxxer.hikari.HikariDataSource [restartedMain] HikariPool-1 - Start completed.
+2023-07-20 20:18:41,780 INFO org.hibernate.dialect.Dialect [restartedMain] HHH000400: Using dialect: com.oscarmartinez.socialleague.sqlite.SQLDialect
+2023-07-20 20:18:42,191 INFO org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator [restartedMain] HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-07-20 20:18:42,439 DEBUG com.oscarmartinez.socialleague.security.JwtAuthTokenFilter [restartedMain] Filter 'authenticationJwtTokenFilter' configured for use
+2023-07-20 20:18:42,868 INFO com.oscarmartinez.socialleague.SocialleagueApplication [restartedMain] Started SocialleagueApplication in 2.755 seconds (JVM running for 3.232)
+2023-07-20 20:18:52,423 INFO org.apache.catalina.core.StandardService [RMI TCP Connection(7)-127.0.0.1] Stopping service [Tomcat]
+2023-07-20 20:18:52,426 WARN org.apache.catalina.loader.WebappClassLoaderBase [RMI TCP Connection(7)-127.0.0.1] The web application [ROOT] appears to have started a thread named [HikariPool-1 housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base@17.0.6/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base@17.0.6/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:252)
+ java.base@17.0.6/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1672)
+ java.base@17.0.6/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+ java.base@17.0.6/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+ java.base@17.0.6/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1062)
+ java.base@17.0.6/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1122)
+ java.base@17.0.6/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+ java.base@17.0.6/java.lang.Thread.run(Thread.java:833)
+2023-07-20 20:18:52,432 INFO com.zaxxer.hikari.HikariDataSource [RMI TCP Connection(7)-127.0.0.1] HikariPool-1 - Shutdown initiated...
+2023-07-20 20:18:52,434 INFO com.zaxxer.hikari.HikariDataSource [RMI TCP Connection(7)-127.0.0.1] HikariPool-1 - Shutdown completed.

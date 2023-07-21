@@ -1,2 +1,2 @@
-# socialleague
-Proyecto Liga Social de boliche
+# social_league
+Proyecto para liga social de boliche
