@@ -77,6 +77,9 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setLastName(playerDetail.getLastName());
 		player.setName(playerDetail.getName());
 		player.setPhone(playerDetail.getPhone());
+		player.setLinesQuantity(playerDetail.getLinesQuantity());
+		player.setLastSummation(playerDetail.getLastSummation());
+		player.setHandicap(playerDetail.getHandicap());
 
 		playerRepository.save(player);
 		logger.debug("{} - End", methodName);
@@ -114,12 +117,12 @@ public class PlayerServiceImp implements IPlayerService {
 		long lastSummation = player.getLastSummation();
 		player.setLinesQuantity(currentQuantity + 1);
 		player.setLastSummation(lastSummation + lineValue);
-		
+
 		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
 		double average = Math.round(tempAverage * 100) / 100;
-		
+
 		player.setAverage(average);
-		
+
 		double handicapDouble = (200 - player.getAverage()) * 0.8;
 		int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
 		player.setHandicap(handicap);
