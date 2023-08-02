@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import com.oscarmartinez.socialleague.entity.Category;
 import com.oscarmartinez.socialleague.entity.Team;
@@ -16,6 +17,7 @@ import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.resource.TeamDTO;
 import com.oscarmartinez.socialleague.security.JwtProvider;
 
+@Service
 public class TeamServiceImp implements ITeamService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TeamServiceImp.class);

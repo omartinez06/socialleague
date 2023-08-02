@@ -1,5 +1,6 @@
 package com.oscarmartinez.socialleague.service;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -43,12 +44,11 @@ public class PlayerServiceImp implements IPlayerService {
 		Player newPlayer = new Player();
 		newPlayer.setAddedBy(jwtProvider.getUserName());
 		newPlayer.setAddedDate(new Date());
-		newPlayer.setAddress(player.getAddress());
 		newPlayer.setAverage(player.getAverage());
 		Category category = categoryRepository.findById(player.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + player.getCategory()));
 		newPlayer.setCategory(category);
-		newPlayer.setDpi(player.getDpi());
+		newPlayer.setBirth(new SimpleDateFormat("dd/MM/yyyy").parse(player.getBirth()));
 		newPlayer.setHandicap(player.getHandicap());
 		newPlayer.setLastName(player.getLastName());
 		newPlayer.setName(player.getName());
@@ -68,12 +68,11 @@ public class PlayerServiceImp implements IPlayerService {
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
 		player.setUpdatedBy(jwtProvider.getUserName());
 		player.setUpdatedDate(new Date());
-		player.setAddress(playerDetail.getAddress());
 		player.setAverage(playerDetail.getAverage());
 		Category category = categoryRepository.findById(playerDetail.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + playerDetail.getCategory()));
 		player.setCategory(category);
-		player.setDpi(playerDetail.getDpi());
+		player.setBirth(new SimpleDateFormat("dd/MM/yyyy").parse(playerDetail.getBirth()));
 		player.setLastName(playerDetail.getLastName());
 		player.setName(playerDetail.getName());
 		player.setPhone(playerDetail.getPhone());

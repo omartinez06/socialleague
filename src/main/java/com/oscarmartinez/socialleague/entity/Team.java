@@ -33,5 +33,8 @@ public class Team {
 
 	@ManyToOne
 	private Category category;
+	
+	@ManyToOne
+	private Player captain;
 
 }

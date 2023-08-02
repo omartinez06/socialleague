@@ -1,5 +1,7 @@
 package com.oscarmartinez.socialleague.entity;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -33,5 +35,10 @@ public class Category {
 
 	@Enumerated(EnumType.STRING)
 	private CategoryLevel level;
+	
+	private Date addedDate;
+	private String addedBy;
+	private Date updatedDate;
+	private String updatedBy;
 
 }

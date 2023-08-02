@@ -25,11 +25,10 @@ public class Player {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private long id;
-	private long dpi;
+	private Date birth;
 	private String name;
 	private String lastName;
 	private int phone;
-	private String address;
 	private int handicap;
 	private long lastSummation;
 	private int linesQuantity;
