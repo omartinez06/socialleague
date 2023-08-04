@@ -34,7 +34,7 @@ public class CategoryServiceImp implements ICategoryService {
 	}
 
 	@Override
-	public void addCategory(CategoryDTO category) throws Exception {
+	public ResponseEntity<HttpStatus> addCategory(CategoryDTO category) throws Exception {
 		final String methodName = "addCategory()";
 		logger.debug("{} - Begin", methodName);
 		Category newCategory = new Category();
@@ -44,6 +44,7 @@ public class CategoryServiceImp implements ICategoryService {
 		newCategory.setAddedBy(jwtProvider.getUserName());
 		categoryRepository.save(newCategory);
 		logger.debug("{} - End", methodName);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@Override

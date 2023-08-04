@@ -12,7 +12,7 @@ public interface ITeamService {
 	
 	List<Team> listTeams();
 
-	void addTeam(TeamDTO team) throws Exception;
+	ResponseEntity<HttpStatus> addTeam(TeamDTO team) throws Exception;
 
 	ResponseEntity<Team> editTeam(long id, TeamDTO teamDetail) throws Exception;
 

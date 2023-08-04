@@ -38,7 +38,7 @@ public class PlayerServiceImp implements IPlayerService {
 	}
 
 	@Override
-	public void addPlayer(PlayerDTO player) throws Exception {
+	public ResponseEntity<HttpStatus> addPlayer(PlayerDTO player) throws Exception {
 		final String methodName = "addPlayer()";
 		logger.debug("{} - Begin", methodName);
 		Player newPlayer = new Player();
@@ -58,6 +58,7 @@ public class PlayerServiceImp implements IPlayerService {
 
 		playerRepository.save(newPlayer);
 		logger.debug("{} - End", methodName);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@Override

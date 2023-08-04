@@ -12,7 +12,7 @@ public interface ICategoryService {
 
 	List<Category> listCategories();
 
-	void addCategory(CategoryDTO team) throws Exception;
+	ResponseEntity<HttpStatus> addCategory(CategoryDTO team) throws Exception;
 
 	ResponseEntity<Category> editCategory(long id, CategoryDTO categoryDetail) throws Exception;
 

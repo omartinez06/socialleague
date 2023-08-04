@@ -12,7 +12,7 @@ public interface IPlayerService {
 
 	List<Player> listPlayers();
 
-	void addPlayer(PlayerDTO player) throws Exception;
+	ResponseEntity<HttpStatus> addPlayer(PlayerDTO player) throws Exception;
 
 	ResponseEntity<Player> editPlayer(long id, PlayerDTO playerDetail) throws Exception;
 

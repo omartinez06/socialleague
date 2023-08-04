@@ -37,7 +37,7 @@ public class TeamServiceImp implements ITeamService {
 	}
 
 	@Override
-	public void addTeam(TeamDTO team) throws Exception {
+	public ResponseEntity<HttpStatus> addTeam(TeamDTO team) throws Exception {
 		final String methodName = "addTeam()";
 		logger.debug("{} - Begin", methodName);
 		Team newTeam = new Team();
@@ -49,6 +49,7 @@ public class TeamServiceImp implements ITeamService {
 		newTeam.setCategory(category);
 		teamRepository.save(newTeam);
 		logger.debug("{} - End", methodName);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@Override
