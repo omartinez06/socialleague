@@ -52,4 +52,9 @@ public class TeamController {
 		return teamService.getTeamById(id);
 	}
 
+	@PutMapping("/points/{id}")
+	public ResponseEntity<Team> addPoints(@PathVariable long id, @RequestBody int points) throws Exception {
+		return teamService.addPoints(id, points);
+	}
+
 }

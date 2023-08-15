@@ -145,6 +145,13 @@ public class PlayerServiceImp implements IPlayerService {
 		int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
 		player.setHandicap(handicap);
 		playerRepository.save(player);
+		
+		Team team = player.getTeam();
+		int currentPines = team.getPines();
+		team.setPines(currentPines + lineValue);
+		teamRepository.save(team);
+		
+		
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
 	}

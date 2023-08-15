@@ -26,6 +26,8 @@ public class Team {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private long id;
 	private String name;
+	private int pines;
+	private int points;
 	private Date addedDate;
 	private String addedBy;
 	private Date updatedDate;

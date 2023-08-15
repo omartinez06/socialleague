@@ -8,6 +8,8 @@ import lombok.Setter;
 public class TeamDTO {
 	
 	private String name;
+	private int pines;
+	private int points;
 	private long category;
 
 }

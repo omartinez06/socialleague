@@ -20,5 +20,7 @@ public interface ITeamService {
 	ResponseEntity<HttpStatus> deleteTeam(long id) throws Exception;
 
 	ResponseEntity<Team> getTeamById(long id) throws Exception;
+	
+	ResponseEntity<Team> addPoints(long id, int points) throws Exception;
 
 }

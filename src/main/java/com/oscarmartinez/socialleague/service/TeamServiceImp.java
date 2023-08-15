@@ -42,15 +42,17 @@ public class TeamServiceImp implements ITeamService {
 		logger.debug("{} - Begin", methodName);
 		Team newTeam = new Team();
 		newTeam.setName(team.getName());
+		newTeam.setPoints(team.getPoints());
+		newTeam.setPines(team.getPines());
 		newTeam.setAddedDate(new Date());
 		newTeam.setAddedBy(jwtProvider.getUserName());
 		Category category = categoryRepository.findById(team.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + team.getCategory()));
 		newTeam.setCategory(category);
-		
-		if(isExist(team.getName()))
+
+		if (isExist(team.getName()))
 			throw new Exception("ALLREADY_EXIST");
-		
+
 		teamRepository.save(newTeam);
 		logger.debug("{} - End", methodName);
 		return new ResponseEntity<>(HttpStatus.OK);
@@ -67,6 +69,8 @@ public class TeamServiceImp implements ITeamService {
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + team.getCategory()));
 		team.setCategory(category);
 		team.setName(teamDetail.getName());
+		team.setPoints(teamDetail.getPoints());
+		team.setPines(teamDetail.getPines());
 
 		teamRepository.save(team);
 		logger.debug("{} - End", methodName);
@@ -91,7 +95,7 @@ public class TeamServiceImp implements ITeamService {
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(team);
 	}
-	
+
 	public boolean isExist(String name) {
 		List<Team> teams = teamRepository.findAll();
 		for (Team team : teams) {
@@ -99,6 +103,20 @@ public class TeamServiceImp implements ITeamService {
 				return true;
 		}
 		return false;
+	}
+
+	@Override
+	public ResponseEntity<Team> addPoints(long id, int points) throws Exception {
+		final String methodName = "addPoints()";
+		logger.debug("{} - Begin", methodName);
+		Team team = teamRepository.findById(id).orElseThrow(() -> new Exception("Team does not exist with id: " + id));
+
+		int currentPoints = team.getPoints();
+		team.setPoints(currentPoints + points);
+
+		teamRepository.save(team);
+		logger.debug("{} - End", methodName);
+		return ResponseEntity.ok(team);
 	}
 
 }
