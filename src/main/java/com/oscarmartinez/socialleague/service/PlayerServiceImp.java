@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 
 import com.oscarmartinez.socialleague.entity.Category;
 import com.oscarmartinez.socialleague.entity.Player;
+import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
+import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.resource.PlayerDTO;
 import com.oscarmartinez.socialleague.security.JwtProvider;
 
@@ -28,6 +30,9 @@ public class PlayerServiceImp implements IPlayerService {
 
 	@Autowired
 	private ICategoryRepository categoryRepository;
+
+	@Autowired
+	private ITeamRepository teamRepository;
 
 	@Autowired
 	private JwtProvider jwtProvider;
@@ -56,6 +61,14 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setLastSummation(player.getLastSummation());
 		newPlayer.setLinesQuantity(player.getLinesQuantity());
 
+		Team team = teamRepository.findById(player.getTeam())
+				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
+
+		newPlayer.setTeam(team);
+
+		if (isExist(newPlayer.getName(), newPlayer.getLastName()))
+			throw new Exception("ALLREADY_EXIST");
+
 		playerRepository.save(newPlayer);
 		logger.debug("{} - End", methodName);
 		return new ResponseEntity<>(HttpStatus.OK);
@@ -80,6 +93,11 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setLinesQuantity(playerDetail.getLinesQuantity());
 		player.setLastSummation(playerDetail.getLastSummation());
 		player.setHandicap(playerDetail.getHandicap());
+
+		Team team = teamRepository.findById(playerDetail.getTeam())
+				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
+
+		player.setTeam(team);
 
 		playerRepository.save(player);
 		logger.debug("{} - End", methodName);
@@ -129,6 +147,24 @@ public class PlayerServiceImp implements IPlayerService {
 		playerRepository.save(player);
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
+	}
+
+	public boolean isExist(String name, String lastName) {
+		List<Player> players = playerRepository.findAll();
+		for (Player player : players) {
+			if (player.getLastName().equalsIgnoreCase(lastName)
+					&& player.getName().equalsIgnoreCase(name))
+				return true;
+		}
+		return false;
+	}
+
+	@Override
+	public List<Player> findAllByTeam(long teamId) throws Exception {
+		Team team = teamRepository.findById(teamId)
+				.orElseThrow(() -> new Exception("Team does not exist with id: " + teamId));
+
+		return playerRepository.findAllByTeam(team);
 	}
 
 }

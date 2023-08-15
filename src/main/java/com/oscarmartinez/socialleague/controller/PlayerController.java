@@ -57,5 +57,10 @@ public class PlayerController {
 	public ResponseEntity<Player> addLine(@PathVariable long id, @RequestBody int lineValue) throws Exception {
 		return playerService.addLine(id, lineValue);
 	}
+	
+	@GetMapping("team/{id}")
+	public List<Player> getPlayersByTeamId(@PathVariable long id) throws Exception {
+		return playerService.findAllByTeam(id);
+	}
 
 }

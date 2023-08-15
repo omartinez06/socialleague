@@ -42,6 +42,10 @@ public class CategoryServiceImp implements ICategoryService {
 		newCategory.setType(CategoryType.valueOf(category.getType()));
 		newCategory.setAddedDate(new Date());
 		newCategory.setAddedBy(jwtProvider.getUserName());
+		
+		if(isExist(newCategory.getLevel(), newCategory.getType()))
+			throw new Exception("ALREADY_EXIST");
+		
 		categoryRepository.save(newCategory);
 		logger.debug("{} - End", methodName);
 		return new ResponseEntity<>(HttpStatus.OK);
@@ -67,7 +71,8 @@ public class CategoryServiceImp implements ICategoryService {
 	public ResponseEntity<HttpStatus> deleteCategory(long id) throws Exception {
 		final String methodName = "deleteCategory()";
 		logger.debug("{} - Begin", methodName);
-		Category category = categoryRepository.findById(id).orElseThrow(() -> new Exception("Category does not exist with id: " + id));
+		Category category = categoryRepository.findById(id)
+				.orElseThrow(() -> new Exception("Category does not exist with id: " + id));
 		categoryRepository.delete(category);
 		logger.debug("{} - End", methodName);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -77,9 +82,19 @@ public class CategoryServiceImp implements ICategoryService {
 	public ResponseEntity<Category> getCategoryById(long id) throws Exception {
 		final String methodName = "getCategoryById()";
 		logger.debug("{} - Begin", methodName);
-		Category category = categoryRepository.findById(id).orElseThrow(() -> new Exception("Category does not exist with id: " + id));
+		Category category = categoryRepository.findById(id)
+				.orElseThrow(() -> new Exception("Category does not exist with id: " + id));
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(category);
+	}
+
+	public boolean isExist(CategoryLevel level, CategoryType type) {
+		List<Category> categories = categoryRepository.findAll();
+		for (Category category : categories) {
+			if (category.getLevel() == level && category.getType() == type)
+				return true;
+		}
+		return false;
 	}
 
 }

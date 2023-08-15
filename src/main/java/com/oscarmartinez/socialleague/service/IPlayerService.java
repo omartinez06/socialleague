@@ -22,4 +22,6 @@ public interface IPlayerService {
 
 	ResponseEntity<Player> addLine(long id, int lineValue) throws Exception;
 
+	List<Player> findAllByTeam(long teamId) throws Exception;
+
 }
