@@ -33,6 +33,7 @@ public class Player {
 	private long lastSummation;
 	private int linesQuantity;
 	private double average;
+	private int maxLine;
 	private Date addedDate;
 	private String addedBy;
 	private Date updatedDate;
