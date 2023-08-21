@@ -17,5 +17,6 @@ public class PlayerDTO {
 	private long team;
 	private long category;
 	private int linesQuantity;
+	private int maxLine;
 
 }
