@@ -18,5 +18,6 @@ public class PlayerDTO {
 	private long category;
 	private int linesQuantity;
 	private int maxLine;
+	private int maxSerie;
 
 }

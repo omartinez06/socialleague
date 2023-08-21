@@ -61,6 +61,7 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setLastSummation(player.getLastSummation());
 		newPlayer.setLinesQuantity(player.getLinesQuantity());
 		newPlayer.setMaxLine(player.getMaxLine());
+		newPlayer.setMaxSerie(player.getMaxSerie());
 
 		Team team = teamRepository.findById(player.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
@@ -95,6 +96,7 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setLastSummation(playerDetail.getLastSummation());
 		player.setHandicap(playerDetail.getHandicap());
 		player.setMaxLine(playerDetail.getMaxLine());
+		player.setMaxSerie(playerDetail.getMaxSerie());
 
 		Team team = teamRepository.findById(playerDetail.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
@@ -159,6 +161,23 @@ public class PlayerServiceImp implements IPlayerService {
 		teamRepository.save(team);
 		
 		
+		logger.debug("{} - End", methodName);
+		return ResponseEntity.ok(player);
+	}
+	
+	@Override
+	public ResponseEntity<Player> addSerie(long id, int serieValue) throws Exception {
+		final String methodName = "addSerie()";
+		logger.debug("{} - Begin", methodName);
+		Player player = playerRepository.findById(id)
+				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
+		if(serieValue > player.getMaxSerie()) {
+			player.setMaxSerie(serieValue);
+		} else {
+			return ResponseEntity.ok(player);
+		}
+		
+		playerRepository.save(player);
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
 	}

@@ -58,6 +58,11 @@ public class PlayerController {
 		return playerService.addLine(id, lineValue);
 	}
 	
+	@PutMapping("serie/{id}")
+	public ResponseEntity<Player> addSerie(@PathVariable long id, @RequestBody int serieValue) throws Exception {
+		return playerService.addSerie(id, serieValue);
+	}
+	
 	@GetMapping("team/{id}")
 	public List<Player> getPlayersByTeamId(@PathVariable long id) throws Exception {
 		return playerService.findAllByTeam(id);

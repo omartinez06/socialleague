@@ -38,6 +38,7 @@ public class Player {
 	private String addedBy;
 	private Date updatedDate;
 	private String updatedBy;
+	private int maxSerie;
 	
 	@ManyToOne
 	private Team team;
