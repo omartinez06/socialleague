@@ -11,8 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.oscarmartinez.socialleague.entity.Category;
+import com.oscarmartinez.socialleague.entity.Player;
 import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
+import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.resource.TeamDTO;
 import com.oscarmartinez.socialleague.security.JwtProvider;
@@ -27,6 +29,9 @@ public class TeamServiceImp implements ITeamService {
 
 	@Autowired
 	private ICategoryRepository categoryRepository;
+	
+	@Autowired
+	private IPlayerRepository playerRepository;
 
 	@Autowired
 	private JwtProvider jwtProvider;
@@ -49,6 +54,12 @@ public class TeamServiceImp implements ITeamService {
 		Category category = categoryRepository.findById(team.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + team.getCategory()));
 		newTeam.setCategory(category);
+		
+		if(team.getCaptain() != 0) {
+			Player player = playerRepository.findById(team.getCaptain())
+					.orElseThrow(() -> new Exception("Player does not exist with id: " + team.getCaptain()));
+			newTeam.setCaptain(player);
+		}
 
 		if (isExist(team.getName()))
 			throw new Exception("ALLREADY_EXIST");
@@ -71,6 +82,13 @@ public class TeamServiceImp implements ITeamService {
 		team.setName(teamDetail.getName());
 		team.setPoints(teamDetail.getPoints());
 		team.setPines(teamDetail.getPines());
+		
+		if(teamDetail.getCaptain() != 0) {
+			Player player = playerRepository.findById(teamDetail.getCaptain())
+					.orElseThrow(() -> new Exception("Player does not exist with id: " + teamDetail.getCaptain()));
+			team.setCaptain(player);
+		}
+
 
 		teamRepository.save(team);
 		logger.debug("{} - End", methodName);

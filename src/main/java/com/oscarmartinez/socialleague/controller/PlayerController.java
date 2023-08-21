@@ -1,5 +1,6 @@
 package com.oscarmartinez.socialleague.controller;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.oscarmartinez.socialleague.entity.Player;
 import com.oscarmartinez.socialleague.resource.PlayerDTO;
 import com.oscarmartinez.socialleague.service.IPlayerService;
+
+import net.sf.jasperreports.engine.JRException;
 
 @CrossOrigin("*")
 @RestController
@@ -66,6 +69,11 @@ public class PlayerController {
 	@GetMapping("team/{id}")
 	public List<Player> getPlayersByTeamId(@PathVariable long id) throws Exception {
 		return playerService.findAllByTeam(id);
+	}
+	
+	@GetMapping("report/{format}")
+	public String generateReport(@PathVariable String format) throws FileNotFoundException, JRException {
+		return playerService.exportReport(format);
 	}
 
 }

@@ -5,12 +5,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TeamDTO {
+public class MaxSerieReportDTO {
 	
+	private int position;
+	private String lastName;
 	private String name;
-	private int pines;
-	private int points;
-	private long category;
-	private long captain;
+	private String category;
+	private int maxSerie;
 
 }
