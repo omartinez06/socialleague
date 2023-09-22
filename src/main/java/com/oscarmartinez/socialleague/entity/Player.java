@@ -7,6 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,5 +46,8 @@ public class Player {
 	
 	@ManyToOne
 	private Category category;
+	
+	@OneToOne(mappedBy = "player")
+	private BackupLines lastLines;
 
 }

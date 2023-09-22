@@ -1,6 +1,6 @@
 package com.oscarmartinez.socialleague.controller;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ public class PlayerController {
 	}
 	
 	@GetMapping("report/{format}")
-	public String generateReport(@PathVariable String format) throws FileNotFoundException, JRException {
+	public String generateReport(@PathVariable String format) throws JRException, IOException {
 		return playerService.exportReport(format);
 	}
 
