@@ -9,5 +9,7 @@ public class CategoryDTO {
 	
 	private String type;
 	private String level;
+	private double minAverage;
+	private double maxAverage;
 
 }

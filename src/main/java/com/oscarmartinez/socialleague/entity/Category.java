@@ -40,5 +40,7 @@ public class Category {
 	private String addedBy;
 	private Date updatedDate;
 	private String updatedBy;
+	private double minAverage;
+	private double maxAverage;
 
 }

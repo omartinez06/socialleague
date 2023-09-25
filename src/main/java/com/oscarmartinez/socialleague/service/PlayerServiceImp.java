@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,11 +24,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
+import com.oscarmartinez.socialleague.entity.BackupLines;
 import com.oscarmartinez.socialleague.entity.Category;
 import com.oscarmartinez.socialleague.entity.Player;
 import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.entity.enums.CategoryLevel;
 import com.oscarmartinez.socialleague.entity.enums.CategoryType;
+import com.oscarmartinez.socialleague.repository.IBackupLinesRepository;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
@@ -62,6 +67,9 @@ public class PlayerServiceImp implements IPlayerService {
 
 	@Autowired
 	private JwtProvider jwtProvider;
+
+	@Autowired
+	private IBackupLinesRepository backupRepository;
 
 	@Override
 	public List<Player> listPlayers() {
@@ -156,39 +164,99 @@ public class PlayerServiceImp implements IPlayerService {
 	}
 
 	@Override
-	public ResponseEntity<Player> addLine(long id, int lineValue) throws Exception {
+	public ResponseEntity<Player> addLine(long id, int lineValue, int line) throws Exception {
 		final String methodName = "addLine()";
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
-		int currentQuantity = player.getLinesQuantity();
-		long lastSummation = player.getLastSummation();
-		player.setLinesQuantity(currentQuantity + 1);
-		player.setLastSummation(lastSummation + lineValue);
 
-		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
-		double average = Math.round(tempAverage * 100) / 100;
+		List<BackupLines> currentBackups = backupRepository.findByPlayer(player);
+		if (!currentBackups.isEmpty()) {
+			for (BackupLines backup : currentBackups) {
+			    if (isLastWeek(backup.getAddedDate())) {
+			        backupRepository.delete(backup);
+			    } else {
+			        switch (line) {
+			            case 1:
+			                backup.setFirstLine(lineValue);
+			                break;
+			            case 2:
+			                backup.setSecondLine(lineValue);
+			                break;
+			            case 3:
+			                backup.setThirdLine(lineValue);
+			                break;
+			            default:
+			            	return ResponseEntity.badRequest().build();
+			                break;
+			        }
+			    }
+			}
 
-		player.setAverage(average);
-
-		//Este 200 del calculo de HDCP ingresarlo al comenzar torneo al igual que el 0.8.
-		double handicapDouble = (200 - player.getAverage()) * 0.8;
-		int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
-		player.setHandicap(handicap);
-
-		if (lineValue > player.getMaxLine()) {
-			player.setMaxLine(lineValue);
+			// currentBackups.forEach(backupRepository::delete);
+		} else {
+			currentBackups = new ArrayList<>();
+			BackupLines backupLines = new BackupLines();
+			backupLines.setAddedDate(LocalDateTime.now());
+			switch (line) {
+			case 1:
+				backupLines.setFirstLine(lineValue);
+				break;
+			case 2:
+				backupLines.setSecondLine(lineValue);
+				break;
+			case 3:
+				backupLines.setThirdLine(lineValue);
+				break;
+			default:
+				return ResponseEntity.badRequest().build();
+				break;
+			}
+			backupLines.setPlayer(player);
+			backupRepository.save(backupLines);
 		}
 
-		playerRepository.save(player);
-
-		Team team = player.getTeam();
-		int currentPines = team.getPines();
-		team.setPines(currentPines + lineValue);
-		teamRepository.save(team);
+		/*
+		 * int currentQuantity = player.getLinesQuantity(); long lastSummation =
+		 * player.getLastSummation(); player.setLinesQuantity(currentQuantity + 1);
+		 * player.setLastSummation(lastSummation + lineValue);
+		 * 
+		 * double tempAverage = (double) player.getLastSummation() / (double)
+		 * player.getLinesQuantity(); double average = Math.round(tempAverage * 100) /
+		 * 100;
+		 * 
+		 * player.setAverage(average);
+		 * 
+		 * //Este 200 del calculo de HDCP ingresarlo al comenzar torneo al igual que el
+		 * 0.8. double handicapDouble = (200 - player.getAverage()) * 0.8; int handicap
+		 * = handicapDouble < 0 ? 0 : (int) handicapDouble;
+		 * player.setHandicap(handicap);
+		 * 
+		 * if (lineValue > player.getMaxLine()) { player.setMaxLine(lineValue); }
+		 * 
+		 * playerRepository.save(player);
+		 * 
+		 * Team team = player.getTeam(); int currentPines = team.getPines();
+		 * team.setPines(currentPines + lineValue); teamRepository.save(team);
+		 */
 
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
+	}
+
+	private boolean isLastWeek(LocalDateTime fecha) {
+		LocalDateTime fechaActual = LocalDateTime.now();
+
+		// Obtener el primer día de la semana actual (lunes)
+		LocalDateTime primerDiaSemanaActual = fechaActual.with(DayOfWeek.MONDAY);
+
+		// Obtener el primer día de la semana pasada
+		LocalDateTime primerDiaSemanaPasada = primerDiaSemanaActual.minus(1, ChronoUnit.WEEKS);
+
+		// Obtener el último día de la semana pasada (domingo)
+		LocalDateTime ultimoDiaSemanaPasada = primerDiaSemanaActual.minus(1, ChronoUnit.SECONDS);
+
+		return fecha.isAfter(primerDiaSemanaPasada) && fecha.isBefore(ultimoDiaSemanaPasada);
 	}
 
 	@Override
@@ -231,9 +299,6 @@ public class PlayerServiceImp implements IPlayerService {
 		List<MaxLineReportDTO> maxLineReport = getMaxLineReport();
 		List<MaxSerieReportDTO> maxSerieReport = getMaxSerieReport();
 		List<TeamPointsReportDTO> teamPointsReport = getTeamPointsReport();
-		
-		
-		
 
 		// load file and compile it
 		InputStream fileAverage = new ClassPathResource("AverageByCategory.jrxml").getInputStream();
@@ -243,34 +308,53 @@ public class PlayerServiceImp implements IPlayerService {
 		Map<String, Object> map = new HashMap<>();
 		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, map, dataSource);
 
-		/*File fileMaxLine = ResourceUtils.getFile("classpath:PinesByCategory.jrxml");
-		JasperReport jasperReportMaxLine = JasperCompileManager.compileReport(fileMaxLine.getAbsolutePath());
-		JRBeanCollectionDataSource maxLineDataSource = new JRBeanCollectionDataSource(maxLineReport);
-		JasperPrint jasperPrintMaxLine = JasperFillManager.fillReport(jasperReportMaxLine, map, maxLineDataSource);
-
-		File fileMaxSerie = ResourceUtils.getFile("classpath:MaxSerieByCategory.jrxml");
-		JasperReport jasperReportMaxSerie = JasperCompileManager.compileReport(fileMaxSerie.getAbsolutePath());
-		JRBeanCollectionDataSource maxSerieDataSource = new JRBeanCollectionDataSource(maxSerieReport);
-		JasperPrint jasperPrintMaxSerie = JasperFillManager.fillReport(jasperReportMaxSerie, map, maxSerieDataSource);
-
-		File fileTeamPoints = ResourceUtils.getFile("classpath:PointTeamByCategory.jrxml");
-		JasperReport jasperReportTeamPoints = JasperCompileManager.compileReport(fileTeamPoints.getAbsolutePath());
-		JRBeanCollectionDataSource teamPointsDataSource = new JRBeanCollectionDataSource(teamPointsReport);
-		JasperPrint jasperPrintTeamPoints = JasperFillManager.fillReport(jasperReportTeamPoints, map,
-				teamPointsDataSource);*/
+		/*
+		 * File fileMaxLine = ResourceUtils.getFile("classpath:PinesByCategory.jrxml");
+		 * JasperReport jasperReportMaxLine =
+		 * JasperCompileManager.compileReport(fileMaxLine.getAbsolutePath());
+		 * JRBeanCollectionDataSource maxLineDataSource = new
+		 * JRBeanCollectionDataSource(maxLineReport); JasperPrint jasperPrintMaxLine =
+		 * JasperFillManager.fillReport(jasperReportMaxLine, map, maxLineDataSource);
+		 * 
+		 * File fileMaxSerie =
+		 * ResourceUtils.getFile("classpath:MaxSerieByCategory.jrxml"); JasperReport
+		 * jasperReportMaxSerie =
+		 * JasperCompileManager.compileReport(fileMaxSerie.getAbsolutePath());
+		 * JRBeanCollectionDataSource maxSerieDataSource = new
+		 * JRBeanCollectionDataSource(maxSerieReport); JasperPrint jasperPrintMaxSerie =
+		 * JasperFillManager.fillReport(jasperReportMaxSerie, map, maxSerieDataSource);
+		 * 
+		 * File fileTeamPoints =
+		 * ResourceUtils.getFile("classpath:PointTeamByCategory.jrxml"); JasperReport
+		 * jasperReportTeamPoints =
+		 * JasperCompileManager.compileReport(fileTeamPoints.getAbsolutePath());
+		 * JRBeanCollectionDataSource teamPointsDataSource = new
+		 * JRBeanCollectionDataSource(teamPointsReport); JasperPrint
+		 * jasperPrintTeamPoints = JasperFillManager.fillReport(jasperReportTeamPoints,
+		 * map, teamPointsDataSource);
+		 */
 
 		if (reportFormat.equalsIgnoreCase("html")) {
 			JasperExportManager.exportReportToHtmlFile(jasperPrint, "average.html");
-			/*JasperExportManager.exportReportToHtmlFile(jasperPrintMaxLine, "maxLine.html");
-			JasperExportManager.exportReportToHtmlFile(jasperPrintMaxSerie, "maxSerie.html");
-			JasperExportManager.exportReportToHtmlFile(jasperPrintTeamPoints, "teamPoints.html");*/
+			/*
+			 * JasperExportManager.exportReportToHtmlFile(jasperPrintMaxLine,
+			 * "maxLine.html");
+			 * JasperExportManager.exportReportToHtmlFile(jasperPrintMaxSerie,
+			 * "maxSerie.html");
+			 * JasperExportManager.exportReportToHtmlFile(jasperPrintTeamPoints,
+			 * "teamPoints.html");
+			 */
 		}
 
 		if (reportFormat.equalsIgnoreCase("pdf")) {
 			JasperExportManager.exportReportToPdfFile(jasperPrint, "average.pdf");
-			/*JasperExportManager.exportReportToPdfFile(jasperPrintMaxLine, "maxLine.pdf");
-			JasperExportManager.exportReportToPdfFile(jasperPrintMaxSerie, "maxSerie.pdf");
-			JasperExportManager.exportReportToPdfFile(jasperPrintTeamPoints, "teamPoints.pdf");*/
+			/*
+			 * JasperExportManager.exportReportToPdfFile(jasperPrintMaxLine, "maxLine.pdf");
+			 * JasperExportManager.exportReportToPdfFile(jasperPrintMaxSerie,
+			 * "maxSerie.pdf");
+			 * JasperExportManager.exportReportToPdfFile(jasperPrintTeamPoints,
+			 * "teamPoints.pdf");
+			 */
 		}
 
 		return "Reports generated successfully";

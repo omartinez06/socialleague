@@ -42,6 +42,8 @@ public class CategoryServiceImp implements ICategoryService {
 		newCategory.setType(CategoryType.valueOf(category.getType()));
 		newCategory.setAddedDate(new Date());
 		newCategory.setAddedBy(jwtProvider.getUserName());
+		newCategory.setMinAverage(category.getMinAverage());
+		newCategory.setMaxAverage(category.getMaxAverage());
 		
 		if(isExist(newCategory.getLevel(), newCategory.getType()))
 			throw new Exception("ALREADY_EXIST");
@@ -61,6 +63,8 @@ public class CategoryServiceImp implements ICategoryService {
 		category.setUpdatedDate(new Date());
 		category.setLevel(CategoryLevel.valueOf(categoryDetail.getLevel()));
 		category.setType(CategoryType.valueOf(categoryDetail.getType()));
+		category.setMinAverage(categoryDetail.getMinAverage());
+		category.setMaxAverage(categoryDetail.getMaxAverage());
 
 		categoryRepository.save(category);
 		logger.debug("{} - End", methodName);

@@ -23,7 +23,7 @@ public interface IPlayerService {
 
 	ResponseEntity<Player> getPlayerById(long id) throws Exception;
 
-	ResponseEntity<Player> addLine(long id, int lineValue) throws Exception;
+	ResponseEntity<Player> addLine(long id, int lineValue, int line) throws Exception;
 	
 	ResponseEntity<Player> addSerie(long id, int serieValue) throws Exception;
 

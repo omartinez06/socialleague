@@ -1,5 +1,7 @@
 package com.oscarmartinez.socialleague.entity;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,6 +30,7 @@ public class BackupLines {
 	private int firstLine;
 	private int secondLine;
 	private int thirdLine;
+	private LocalDateTime addedDate;
 	
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "player_id", referencedColumnName = "id")
