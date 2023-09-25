@@ -49,5 +49,8 @@ public class Player {
 	
 	@OneToOne(mappedBy = "player")
 	private BackupLines lastLines;
+	
+	@OneToOne(mappedBy = "player")
+	private ClubGift clubGift;
 
 }

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,6 +27,7 @@ import org.springframework.util.ResourceUtils;
 
 import com.oscarmartinez.socialleague.entity.BackupLines;
 import com.oscarmartinez.socialleague.entity.Category;
+import com.oscarmartinez.socialleague.entity.ClubGift;
 import com.oscarmartinez.socialleague.entity.Player;
 import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.entity.Tournament;
@@ -33,6 +35,7 @@ import com.oscarmartinez.socialleague.entity.enums.CategoryLevel;
 import com.oscarmartinez.socialleague.entity.enums.CategoryType;
 import com.oscarmartinez.socialleague.repository.IBackupLinesRepository;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
+import com.oscarmartinez.socialleague.repository.IClubGift;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.repository.ITournamentRepository;
@@ -75,6 +78,9 @@ public class PlayerServiceImp implements IPlayerService {
 
 	@Autowired
 	private ITournamentRepository tournamentRepository;
+	
+	@Autowired
+	private IClubGift clubRespository;
 
 	@Override
 	public List<Player> listPlayers() {
@@ -259,6 +265,33 @@ public class PlayerServiceImp implements IPlayerService {
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
+		
+		Tournament activeTournament = tournamentRepository.findByActive(true);
+		
+		int club1 = activeTournament.getFirstClubValue();
+		int club2 = activeTournament.getSecondClubValue();
+		int club3 = activeTournament.getThirdClubValue();
+		
+		if(serieValue >= club3) {
+			ClubGift gift = new ClubGift();
+			gift.setAddedDate(LocalDateTime.now());
+			gift.setPlayer(player);
+			gift.setValue(club3);
+			clubRespository.save(gift);
+		} else if(serieValue >= club2) {
+			ClubGift gift = new ClubGift();
+			gift.setAddedDate(LocalDateTime.now());
+			gift.setPlayer(player);
+			gift.setValue(club2);
+			clubRespository.save(gift);
+		} else if(serieValue >= club1 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
+			ClubGift gift = new ClubGift();
+			gift.setAddedDate(LocalDateTime.now());
+			gift.setPlayer(player);
+			gift.setValue(club2);
+			clubRespository.save(gift);
+		}
+		
 		if (serieValue > player.getMaxSerie()) {
 			player.setMaxSerie(serieValue);
 		} else {
