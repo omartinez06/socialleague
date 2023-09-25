@@ -19,6 +19,7 @@ public class TournamentDTO {
 	private double linesAverage;
 	private int pointsForHDCP;
 	private double averageForHDCP;
+	private int numberDays;
 
 
 }

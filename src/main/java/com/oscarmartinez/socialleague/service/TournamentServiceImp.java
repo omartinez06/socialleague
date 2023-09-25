@@ -41,6 +41,7 @@ public class TournamentServiceImp implements ITournamentService {
 		tournament.setLinesAverage(newTournament.getLinesAverage());
 		tournament.setPointsForHDCP(newTournament.getPointsForHDCP());
 		tournament.setAverageForHDCP(newTournament.getAverageForHDCP());
+		tournament.setNumberDays(newTournament.getNumberDays());
 		tournament.setActive(true);
 
 		tournamentRepository.save(tournament);
@@ -110,6 +111,9 @@ public class TournamentServiceImp implements ITournamentService {
 				break;
 			case Constants.TOURNAMENT_AVERAGE_FOR_HDCP:
 				currentTournament.setAverageForHDCP((double) value);
+				break;
+			case Constants.TOURNAMENT_NUMBER_DAYS:
+				currentTournament.setNumberDays((int) value);
 				break;
 			default:
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Fields");
