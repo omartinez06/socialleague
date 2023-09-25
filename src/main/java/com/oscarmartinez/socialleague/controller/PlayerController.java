@@ -57,23 +57,34 @@ public class PlayerController {
 	}
 
 	@PutMapping("line/{line}/{id}")
-	public ResponseEntity<Player> addLine(@PathVariable long id, @PathVariable int line, @RequestBody int lineValue) throws Exception {
+	public ResponseEntity<Player> addLine(@PathVariable long id, @PathVariable int line, @RequestBody int lineValue)
+			throws Exception {
 		return playerService.addLine(id, lineValue, line);
 	}
-	
+
 	@PutMapping("serie/{id}")
 	public ResponseEntity<Player> addSerie(@PathVariable long id, @RequestBody int serieValue) throws Exception {
 		return playerService.addSerie(id, serieValue);
 	}
-	
+
 	@GetMapping("team/{id}")
 	public List<Player> getPlayersByTeamId(@PathVariable long id) throws Exception {
 		return playerService.findAllByTeam(id);
 	}
-	
+
 	@GetMapping("report/{format}")
 	public String generateReport(@PathVariable String format) throws JRException, IOException {
 		return playerService.exportReport(format);
+	}
+
+	@GetMapping("hdcp/general")
+	public ResponseEntity<HttpStatus> updateGeneralHdcp() throws Exception {
+		return playerService.updateHandicap();
+	}
+	
+	@GetMapping("hdcp/{id}")
+	public ResponseEntity<Player> updateSingleHdcp(@PathVariable long id) throws Exception {
+		return playerService.updateSingleHandicap(id);
 	}
 
 }

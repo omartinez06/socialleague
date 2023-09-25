@@ -28,12 +28,14 @@ import com.oscarmartinez.socialleague.entity.BackupLines;
 import com.oscarmartinez.socialleague.entity.Category;
 import com.oscarmartinez.socialleague.entity.Player;
 import com.oscarmartinez.socialleague.entity.Team;
+import com.oscarmartinez.socialleague.entity.Tournament;
 import com.oscarmartinez.socialleague.entity.enums.CategoryLevel;
 import com.oscarmartinez.socialleague.entity.enums.CategoryType;
 import com.oscarmartinez.socialleague.repository.IBackupLinesRepository;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
+import com.oscarmartinez.socialleague.repository.ITournamentRepository;
 import com.oscarmartinez.socialleague.resource.AverageReportDTO;
 import com.oscarmartinez.socialleague.resource.MaxLineReportDTO;
 import com.oscarmartinez.socialleague.resource.MaxSerieReportDTO;
@@ -70,6 +72,9 @@ public class PlayerServiceImp implements IPlayerService {
 
 	@Autowired
 	private IBackupLinesRepository backupRepository;
+
+	@Autowired
+	private ITournamentRepository tournamentRepository;
 
 	@Override
 	public List<Player> listPlayers() {
@@ -173,24 +178,23 @@ public class PlayerServiceImp implements IPlayerService {
 		List<BackupLines> currentBackups = backupRepository.findByPlayer(player);
 		if (!currentBackups.isEmpty()) {
 			for (BackupLines backup : currentBackups) {
-			    if (isLastWeek(backup.getAddedDate())) {
-			        backupRepository.delete(backup);
-			    } else {
-			        switch (line) {
-			            case 1:
-			                backup.setFirstLine(lineValue);
-			                break;
-			            case 2:
-			                backup.setSecondLine(lineValue);
-			                break;
-			            case 3:
-			                backup.setThirdLine(lineValue);
-			                break;
-			            default:
-			            	return ResponseEntity.badRequest().build();
-			                break;
-			        }
-			    }
+				if (isLastWeek(backup.getAddedDate())) {
+					backupRepository.delete(backup);
+				} else {
+					switch (line) {
+					case 1:
+						backup.setFirstLine(lineValue);
+						break;
+					case 2:
+						backup.setSecondLine(lineValue);
+						break;
+					case 3:
+						backup.setThirdLine(lineValue);
+						break;
+					default:
+						return ResponseEntity.badRequest().build();
+					}
+				}
 			}
 
 			// currentBackups.forEach(backupRepository::delete);
@@ -210,35 +214,25 @@ public class PlayerServiceImp implements IPlayerService {
 				break;
 			default:
 				return ResponseEntity.badRequest().build();
-				break;
 			}
 			backupLines.setPlayer(player);
 			backupRepository.save(backupLines);
 		}
 
-		/*
-		 * int currentQuantity = player.getLinesQuantity(); long lastSummation =
-		 * player.getLastSummation(); player.setLinesQuantity(currentQuantity + 1);
-		 * player.setLastSummation(lastSummation + lineValue);
-		 * 
-		 * double tempAverage = (double) player.getLastSummation() / (double)
-		 * player.getLinesQuantity(); double average = Math.round(tempAverage * 100) /
-		 * 100;
-		 * 
-		 * player.setAverage(average);
-		 * 
-		 * //Este 200 del calculo de HDCP ingresarlo al comenzar torneo al igual que el
-		 * 0.8. double handicapDouble = (200 - player.getAverage()) * 0.8; int handicap
-		 * = handicapDouble < 0 ? 0 : (int) handicapDouble;
-		 * player.setHandicap(handicap);
-		 * 
-		 * if (lineValue > player.getMaxLine()) { player.setMaxLine(lineValue); }
-		 * 
-		 * playerRepository.save(player);
-		 * 
-		 * Team team = player.getTeam(); int currentPines = team.getPines();
-		 * team.setPines(currentPines + lineValue); teamRepository.save(team);
-		 */
+		int currentQuantity = player.getLinesQuantity();
+		long lastSummation = player.getLastSummation();
+		player.setLinesQuantity(currentQuantity + 1);
+		player.setLastSummation(lastSummation + lineValue);
+
+		if (lineValue > player.getMaxLine()) {
+			player.setMaxLine(lineValue);
+		}
+
+		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
+		double average = Math.round(tempAverage * 100) / 100;
+		player.setAverage(average);
+
+		playerRepository.save(player);
 
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
@@ -1063,8 +1057,43 @@ public class PlayerServiceImp implements IPlayerService {
 
 	@Override
 	public ResponseEntity<HttpStatus> updateHandicap() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		final String methodName = "updateHandicap()";
+		logger.debug("{} - Begin", methodName);
+
+		List<Player> players = playerRepository.findAll();
+		Tournament activeTournament = tournamentRepository.findByActive(true);
+
+		for (Player player : players) {
+			double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
+					* activeTournament.getAverageForHDCP();
+			int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
+			player.setHandicap(handicap);
+
+			playerRepository.save(player);
+		}
+
+		logger.debug("{} - End", methodName);
+		return new ResponseEntity<>(HttpStatus.OK);
+
+	}
+
+	@Override
+	public ResponseEntity<Player> updateSingleHandicap(long id) throws Exception {
+		final String methodName = "updateSingleHandicap()";
+		logger.debug("{} - Begin", methodName);
+		Player player = playerRepository.findById(id)
+				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
+
+		Tournament activeTournament = tournamentRepository.findByActive(true);
+		double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
+				* activeTournament.getAverageForHDCP();
+		int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
+		player.setHandicap(handicap);
+
+		playerRepository.save(player);
+
+		logger.debug("{} - End", methodName);
+		return ResponseEntity.ok(player);
 	}
 
 }

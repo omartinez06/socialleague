@@ -33,5 +33,7 @@ public class Tournament {
 	private double thirdClubQuota;
 	private double linesAverage;
 	private boolean active;
+	private int pointsForHDCP;
+	private double averageForHDCP;
 
 }

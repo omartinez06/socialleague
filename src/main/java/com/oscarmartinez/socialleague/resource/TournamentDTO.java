@@ -17,6 +17,8 @@ public class TournamentDTO {
 	private double secondClubQuota;
 	private double thirdClubQuota;
 	private double linesAverage;
+	private int pointsForHDCP;
+	private double averageForHDCP;
 
 
 }

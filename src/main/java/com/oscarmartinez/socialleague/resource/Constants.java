@@ -13,5 +13,7 @@ public class Constants {
 	public static final String TOURNAMENT_THIRD_CLUB_QUOTA = "thirdClubQuota";
 	public static final String TOURNAMENT_LINES_AVERAGE = "linesAverage";
 	public static final String TOURNAMENT_ACTIVE = "active";
+	public static final String TOURNAMENT_POINTS_FOR_HDCP = "pointsForHDCP";
+	public static final String TOURNAMENT_AVERAGE_FOR_HDCP = "averageForHDCP";
 
 }
