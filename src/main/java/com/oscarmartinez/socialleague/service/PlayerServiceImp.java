@@ -107,7 +107,8 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setLinesQuantity(player.getLinesQuantity());
 		newPlayer.setMaxLine(player.getMaxLine());
 		newPlayer.setMaxSerie(player.getMaxSerie());
-
+		newPlayer.setMail(player.getMail());
+		
 		Team team = teamRepository.findById(player.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
 
@@ -142,6 +143,7 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setHandicap(playerDetail.getHandicap());
 		player.setMaxLine(playerDetail.getMaxLine());
 		player.setMaxSerie(playerDetail.getMaxSerie());
+		player.setMail(playerDetail.getMail());
 
 		Team team = teamRepository.findById(playerDetail.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
@@ -237,6 +239,11 @@ public class PlayerServiceImp implements IPlayerService {
 		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
 		double average = Math.round(tempAverage * 100) / 100;
 		player.setAverage(average);
+		
+		Team team = player.getTeam(); 
+		int currentPines = team.getPines();
+		team.setPines(currentPines + lineValue + player.getHandicap()); 
+		teamRepository.save(team);
 
 		playerRepository.save(player);
 

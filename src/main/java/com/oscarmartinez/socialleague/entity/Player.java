@@ -40,6 +40,7 @@ public class Player {
 	private Date updatedDate;
 	private String updatedBy;
 	private int maxSerie;
+	private String mail;
 	
 	@ManyToOne
 	private Team team;

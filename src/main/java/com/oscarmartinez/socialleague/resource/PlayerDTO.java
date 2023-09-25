@@ -19,5 +19,6 @@ public class PlayerDTO {
 	private int linesQuantity;
 	private int maxLine;
 	private int maxSerie;
+	private String mail;
 
 }
