@@ -78,9 +78,6 @@ public class PlayerServiceImp implements IPlayerService {
 
 	@Autowired
 	private ITournamentRepository tournamentRepository;
-	
-	@Autowired
-	private IClubGift clubRespository;
 
 	@Override
 	public List<Player> listPlayers() {
@@ -108,7 +105,7 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setMaxLine(player.getMaxLine());
 		newPlayer.setMaxSerie(player.getMaxSerie());
 		newPlayer.setMail(player.getMail());
-		
+		newPlayer.setLineAverage(player.getLineAverage());		
 		Team team = teamRepository.findById(player.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
 
@@ -144,6 +141,7 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setMaxLine(playerDetail.getMaxLine());
 		player.setMaxSerie(playerDetail.getMaxSerie());
 		player.setMail(playerDetail.getMail());
+		player.setLineAverage(playerDetail.getLineAverage());
 
 		Team team = teamRepository.findById(playerDetail.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
@@ -279,24 +277,31 @@ public class PlayerServiceImp implements IPlayerService {
 		int club2 = activeTournament.getSecondClubValue();
 		int club3 = activeTournament.getThirdClubValue();
 		
+		if(player.getClubGift() == null) {
+			player.setClubGift(new ClubGift());
+		}
+		
 		if(serieValue >= club3) {
-			ClubGift gift = new ClubGift();
-			gift.setAddedDate(LocalDateTime.now());
-			gift.setPlayer(player);
-			gift.setValue(club3);
-			clubRespository.save(gift);
+			player.getClubGift().setUpdatedDate(LocalDateTime.now());
+			int currentVal = player.getClubGift().getClub3();
+			double currentGift = player.getClubGift().getTotalGift();
+			player.getClubGift().setClub3(currentVal + 1);
+			player.getClubGift().setTotalGift(currentGift + activeTournament.getThirdClubQuota());
+			playerRepository.save(player);
 		} else if(serieValue >= club2) {
-			ClubGift gift = new ClubGift();
-			gift.setAddedDate(LocalDateTime.now());
-			gift.setPlayer(player);
-			gift.setValue(club2);
-			clubRespository.save(gift);
+			player.getClubGift().setUpdatedDate(LocalDateTime.now());
+			int currentVal = player.getClubGift().getClub2();
+			double currentGift = player.getClubGift().getTotalGift();
+			player.getClubGift().setClub2(currentVal + 1);
+			player.getClubGift().setTotalGift(currentGift + activeTournament.getSecondClubQuota());
+			playerRepository.save(player);
 		} else if(serieValue >= club1 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
-			ClubGift gift = new ClubGift();
-			gift.setAddedDate(LocalDateTime.now());
-			gift.setPlayer(player);
-			gift.setValue(club2);
-			clubRespository.save(gift);
+			player.getClubGift().setUpdatedDate(LocalDateTime.now());
+			int currentVal = player.getClubGift().getClub1();
+			double currentGift = player.getClubGift().getTotalGift();
+			player.getClubGift().setClub1(currentVal + 1);
+			player.getClubGift().setTotalGift(currentGift + activeTournament.getFirstClubQuota());
+			playerRepository.save(player);
 		}
 		
 		if (serieValue > player.getMaxSerie()) {

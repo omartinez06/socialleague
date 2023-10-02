@@ -27,8 +27,11 @@ public class ClubGift {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private long id;
-	int value;
-	private LocalDateTime addedDate;
+	private int club1;
+	private int club2;
+	private int club3;
+	private double totalGift;
+	private LocalDateTime updatedDate;
 	
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "player_id", referencedColumnName = "id")

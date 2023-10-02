@@ -20,5 +20,6 @@ public class PlayerDTO {
 	private int maxLine;
 	private int maxSerie;
 	private String mail;
+	private double lineAverage;
 
 }

@@ -9,6 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,7 +43,9 @@ public class Player {
 	private String updatedBy;
 	private int maxSerie;
 	private String mail;
+	private double lineAverage;
 	
+	@JsonIgnore
 	@ManyToOne
 	private Team team;
 	
