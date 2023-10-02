@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class AverageReportDTO {
 	
+	private int position;
 	private String lastName;
 	private String name;
 	private String category;

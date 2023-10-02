@@ -42,5 +42,10 @@ public class TournamentController {
 			@RequestBody Map<String, Object> tournamentInfo) throws Exception {
 		return tournamentService.updateTournamentInformation(id, tournamentInfo);
 	}
+	
+	@GetMapping("/finish/{id}")
+	public ResponseEntity<Tournament> finishTournament(@PathVariable long id) throws Exception {
+		return tournamentService.finishTournament(id);
+	}
 
 }

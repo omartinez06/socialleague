@@ -1,5 +1,8 @@
 package com.oscarmartinez.socialleague.service;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -10,7 +13,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.oscarmartinez.socialleague.entity.Category;
+import com.oscarmartinez.socialleague.entity.Player;
+import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.entity.Tournament;
+import com.oscarmartinez.socialleague.entity.enums.CategoryLevel;
+import com.oscarmartinez.socialleague.entity.enums.CategoryType;
+import com.oscarmartinez.socialleague.repository.ICategoryRepository;
+import com.oscarmartinez.socialleague.repository.IPlayerRepository;
+import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.repository.ITournamentRepository;
 import com.oscarmartinez.socialleague.resource.Constants;
 import com.oscarmartinez.socialleague.resource.TournamentDTO;
@@ -22,6 +33,15 @@ public class TournamentServiceImp implements ITournamentService {
 
 	@Autowired
 	private ITournamentRepository tournamentRepository;
+
+	@Autowired
+	private IPlayerRepository playerRepository;
+
+	@Autowired
+	private ICategoryRepository categoryRepository;
+	
+	@Autowired
+	private ITeamRepository teamRepository;
 
 	@Override
 	public ResponseEntity<HttpStatus> startNewTournament(TournamentDTO newTournament) throws Exception {
@@ -123,6 +143,168 @@ public class TournamentServiceImp implements ITournamentService {
 		tournamentRepository.save(currentTournament);
 
 		return ResponseEntity.ok(currentTournament);
+	}
+	
+	@Override
+	public ResponseEntity<Tournament> finishTournament(long id) throws Exception {
+		final String methodName = "finishTournament()";
+		logger.debug("{} - Begin", methodName);
+		Tournament tournament = tournamentRepository.findById(id)
+				.orElseThrow(() -> new Exception("Tournament does not exist with id: " + id));
+		
+		if(!tournament.isActive()) {
+			throw new ResponseStatusException(HttpStatus.NOT_MODIFIED, "Tournament was already finished");
+		}
+		
+		tournament.setActive(false);
+		tournamentRepository.save(tournament);
+		endTournament();
+		logger.debug("{} - End", methodName);
+		return ResponseEntity.ok(tournament);
+	}
+
+	public void endTournament() {
+		final String methodName = "endTournament()";
+		logger.debug("{} - Begin", methodName);
+		evaluateCategoryToUp();
+		evaluateCategoryToDown();
+		evaluateCategoryToDownTeam();
+		evaluateCategoryToUpTeam();
+		logger.debug("{} - End", methodName);
+	}
+
+	public void evaluateCategoryToDown() {
+		final String methodName = "evaluateCategoryToDown()";
+		logger.debug("{} - Begin", methodName);
+		List<Category> categories = categoryRepository.findAll();
+
+		for (Category category : categories) {
+			if (category.getLevel().equals(CategoryLevel.D) || category.getType().equals(CategoryType.TEAM))
+				continue;
+
+			List<Player> players = playerRepository.findByCategory(category);
+			Collections.sort(players, new Comparator<Player>() {
+				@Override
+				public int compare(Player player1, Player player2) {
+					return Double.compare(player1.getAverage(), player2.getAverage());
+				}
+			});
+
+			// Get 3 people with the lowest average
+			List<Player> playersLowestAverage = players.subList(0, Math.min(3, players.size()));
+
+			for (Player player : playersLowestAverage) {
+				player.setCategory(getDownCategory(player.getCategory()));
+				playerRepository.save(player);
+			}
+		}
+		logger.debug("{} - End", methodName);
+	}
+
+	public Category getDownCategory(Category category) {
+		switch (category.getLevel()) {
+		case A:
+			return categoryRepository.findByLevelAndType(CategoryLevel.B, category.getType());
+		case B:
+			return categoryRepository.findByLevelAndType(CategoryLevel.C, category.getType());
+		case C:
+			return categoryRepository.findByLevelAndType(CategoryLevel.D, category.getType());
+		default:
+			return category;
+		}
+	}
+	
+	public Category getUpCategory(Category category) {
+		switch (category.getLevel()) {
+		case B:
+			return categoryRepository.findByLevelAndType(CategoryLevel.A, category.getType());
+		case C:
+			return categoryRepository.findByLevelAndType(CategoryLevel.B, category.getType());
+		default:
+			return category;
+		}
+	}
+
+	public void evaluateCategoryToUp() {
+		final String methodName = "evaluateCategoryToUp()";
+		logger.debug("{} - Begin", methodName);
+		List<Category> categories = categoryRepository.findAll();
+		List<Player> players = playerRepository.findAll();
+		if (!players.isEmpty()) {
+			for (Player player : players) {
+				if (player.getCategory().getLevel().equals(CategoryLevel.A))
+					continue;
+
+				for (Category category : categories) {
+					if (category.getType().equals(player.getCategory().getType())
+							&& category.getMinAverage() >= player.getAverage()
+							&& category.getMaxAverage() <= player.getAverage()) {
+						logger.debug("{} - player {} goes to category {}", methodName, player.getName(),
+								category.getLevel());
+						player.setCategory(category);
+					}
+				}
+				playerRepository.save(player);
+			}
+		}
+		logger.debug("{} - End", methodName);
+	}
+	
+	public void evaluateCategoryToDownTeam() {
+		final String methodName = "evaluateCategoryToDownTeam()";
+		logger.debug("{} - Begin", methodName);
+		List<Category> categories = categoryRepository.findAll();
+		
+		for (Category category : categories) {
+			if (category.getLevel().equals(CategoryLevel.C) || !category.getType().equals(CategoryType.TEAM))
+				continue;
+
+			List<Team> teams = teamRepository.findByCategory(category);
+			Collections.sort(teams, new Comparator<Team>() {
+				@Override
+				public int compare(Team team1, Team team2) {
+					return Double.compare(team1.getPoints(), team2.getPoints());
+				}
+			});
+
+			// Get 2 teams with the lowest average
+			List<Team> teamsLowestPoints = teams.subList(0, Math.min(2, teams.size()));
+
+			for (Team team : teamsLowestPoints) {
+				team.setCategory(getDownCategory(team.getCategory()));
+				teamRepository.save(team);
+			}
+		}
+		
+		
+		logger.debug("{} - End", methodName);
+	}
+	
+	public void evaluateCategoryToUpTeam() {
+		final String methodName = "evaluateCategoryToUpTeam()";
+		logger.debug("{} - Begin", methodName);
+		List<Category> categories = categoryRepository.findAll();
+		
+		for (Category category : categories) {
+			if (category.getLevel().equals(CategoryLevel.A) || !category.getType().equals(CategoryType.TEAM))
+				continue;
+
+			List<Team> teams = teamRepository.findByCategory(category);
+			
+			// sort desc list by point using Comparator
+	        Collections.sort(teams, Comparator.comparingInt(Team::getPoints).reversed());
+
+			// Get 2 teams with the highest average
+			List<Team> teamsHighestPoints = teams.subList(0, Math.min(2, teams.size()));
+
+			for (Team team : teamsHighestPoints) {
+				team.setCategory(getUpCategory(team.getCategory()));
+				teamRepository.save(team);
+			}
+		}
+		
+		
+		logger.debug("{} - End", methodName);
 	}
 
 }

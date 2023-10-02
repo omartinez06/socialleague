@@ -15,5 +15,7 @@ public interface ITournamentService {
 	ResponseEntity<HttpStatus> startNewTournament(TournamentDTO newTournament) throws Exception;
 
 	ResponseEntity<Tournament> updateTournamentInformation(long id, Map<String, Object> tournamentInfo) throws Exception;
+	
+	ResponseEntity<Tournament> finishTournament(long id) throws Exception;
 
 }
