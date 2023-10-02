@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.oscarmartinez.socialleague.entity.Team;
+import com.oscarmartinez.socialleague.resource.BackUpPointsDTO;
 import com.oscarmartinez.socialleague.resource.TeamDTO;
 import com.oscarmartinez.socialleague.service.ITeamService;
 
@@ -55,6 +56,16 @@ public class TeamController {
 	@PutMapping("/points/{id}")
 	public ResponseEntity<Team> addPoints(@PathVariable long id, @RequestBody int points) throws Exception {
 		return teamService.addPoints(id, points);
+	}
+
+	@GetMapping("backup/{id}")
+	public ResponseEntity<BackUpPointsDTO> getBackUpPoints(@PathVariable long id) throws Exception {
+		return teamService.getBackUpPoints(id);
+	}
+
+	@PutMapping("points/edit/{id}")
+	public ResponseEntity<Team> editPoints(@PathVariable long id, @RequestBody int points) throws Exception {
+		return teamService.editPoints(id, points);
 	}
 
 }

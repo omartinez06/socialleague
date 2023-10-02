@@ -23,7 +23,7 @@ import lombok.Setter;
 @Builder
 @Entity
 public class BackupLines {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private long id;
@@ -31,9 +31,13 @@ public class BackupLines {
 	private int secondLine;
 	private int thirdLine;
 	private LocalDateTime addedDate;
-	
+
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "player_id", referencedColumnName = "id")
 	private Player player;
+
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "team_id", referencedColumnName = "id")
+	private Team team;
 
 }
