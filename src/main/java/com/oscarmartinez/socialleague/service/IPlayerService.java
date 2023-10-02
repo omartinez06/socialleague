@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.oscarmartinez.socialleague.entity.Player;
+import com.oscarmartinez.socialleague.resource.BackUpLinesDTO;
 import com.oscarmartinez.socialleague.resource.PlayerDTO;
 
 import net.sf.jasperreports.engine.JRException;
@@ -23,7 +24,7 @@ public interface IPlayerService {
 
 	ResponseEntity<Player> getPlayerById(long id) throws Exception;
 
-	ResponseEntity<Player> addLine(long id, int lineValue, int line) throws Exception;
+	ResponseEntity<Player> addLine(long id, List<Integer> lines) throws Exception;
 	
 	ResponseEntity<Player> addSerie(long id, int serieValue) throws Exception;
 
@@ -34,5 +35,7 @@ public interface IPlayerService {
 	ResponseEntity<HttpStatus> updateHandicap() throws Exception;
 	
 	ResponseEntity<Player> updateSingleHandicap(long id) throws Exception;
+	
+	ResponseEntity<BackUpLinesDTO> getBackUpLines(long id) throws Exception;
 
 }

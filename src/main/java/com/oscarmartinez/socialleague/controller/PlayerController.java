@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.oscarmartinez.socialleague.entity.Player;
+import com.oscarmartinez.socialleague.resource.BackUpLinesDTO;
 import com.oscarmartinez.socialleague.resource.PlayerDTO;
 import com.oscarmartinez.socialleague.service.IPlayerService;
 
@@ -56,10 +57,9 @@ public class PlayerController {
 		return playerService.getPlayerById(id);
 	}
 
-	@PutMapping("line/{line}/{id}")
-	public ResponseEntity<Player> addLine(@PathVariable long id, @PathVariable int line, @RequestBody int lineValue)
-			throws Exception {
-		return playerService.addLine(id, lineValue, line);
+	@PutMapping("lines/{id}")
+	public ResponseEntity<Player> addLine(@PathVariable long id, @RequestBody List<Integer> lines) throws Exception {
+		return playerService.addLine(id, lines);
 	}
 
 	@PutMapping("serie/{id}")
@@ -81,10 +81,15 @@ public class PlayerController {
 	public ResponseEntity<HttpStatus> updateGeneralHdcp() throws Exception {
 		return playerService.updateHandicap();
 	}
-	
+
 	@GetMapping("hdcp/{id}")
 	public ResponseEntity<Player> updateSingleHdcp(@PathVariable long id) throws Exception {
 		return playerService.updateSingleHandicap(id);
+	}
+
+	@GetMapping("backup/{id}")
+	public ResponseEntity<BackUpLinesDTO> getBackUpLines(@PathVariable long id) throws Exception {
+		return playerService.getBackUpLines(id);
 	}
 
 }

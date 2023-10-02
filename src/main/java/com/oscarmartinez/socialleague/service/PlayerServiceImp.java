@@ -40,6 +40,7 @@ import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.repository.ITournamentRepository;
 import com.oscarmartinez.socialleague.resource.AverageReportDTO;
+import com.oscarmartinez.socialleague.resource.BackUpLinesDTO;
 import com.oscarmartinez.socialleague.resource.MaxLineReportDTO;
 import com.oscarmartinez.socialleague.resource.MaxSerieReportDTO;
 import com.oscarmartinez.socialleague.resource.PlayerDTO;
@@ -105,7 +106,7 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setMaxLine(player.getMaxLine());
 		newPlayer.setMaxSerie(player.getMaxSerie());
 		newPlayer.setMail(player.getMail());
-		newPlayer.setLineAverage(player.getLineAverage());		
+		newPlayer.setLineAverage(player.getLineAverage());
 		Team team = teamRepository.findById(player.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
 
@@ -175,7 +176,7 @@ public class PlayerServiceImp implements IPlayerService {
 	}
 
 	@Override
-	public ResponseEntity<Player> addLine(long id, int lineValue, int line) throws Exception {
+	public ResponseEntity<Player> addLine(long id, List<Integer> lines) throws Exception {
 		final String methodName = "addLine()";
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
@@ -187,18 +188,16 @@ public class PlayerServiceImp implements IPlayerService {
 				if (isLastWeek(backup.getAddedDate())) {
 					backupRepository.delete(backup);
 				} else {
-					switch (line) {
-					case 1:
-						backup.setFirstLine(lineValue);
-						break;
-					case 2:
-						backup.setSecondLine(lineValue);
-						break;
-					case 3:
-						backup.setThirdLine(lineValue);
-						break;
-					default:
-						return ResponseEntity.badRequest().build();
+					for (int x = 0; x < lines.size(); x++) {
+						if (x == 0) {
+							backup.setFirstLine(lines.get(x));
+						}
+						if (x == 1) {
+							backup.setSecondLine(lines.get(x));
+						}
+						if (x == 2) {
+							backup.setThirdLine(lines.get(x));
+						}
 					}
 				}
 			}
@@ -208,39 +207,40 @@ public class PlayerServiceImp implements IPlayerService {
 			currentBackups = new ArrayList<>();
 			BackupLines backupLines = new BackupLines();
 			backupLines.setAddedDate(LocalDateTime.now());
-			switch (line) {
-			case 1:
-				backupLines.setFirstLine(lineValue);
-				break;
-			case 2:
-				backupLines.setSecondLine(lineValue);
-				break;
-			case 3:
-				backupLines.setThirdLine(lineValue);
-				break;
-			default:
-				return ResponseEntity.badRequest().build();
+			for (int x = 0; x < lines.size(); x++) {
+				if (x == 0) {
+					backupLines.setFirstLine(lines.get(x));
+				}
+				if (x == 1) {
+					backupLines.setSecondLine(lines.get(x));
+				}
+				if (x == 2) {
+					backupLines.setThirdLine(lines.get(x));
+				}
 			}
 			backupLines.setPlayer(player);
 			backupRepository.save(backupLines);
 		}
 
+		int linesQuantity = (int) lines.stream().filter(line -> line > 0).count();
+
+		int linesSummation = lines.stream().filter(line -> line > 0).mapToInt(Integer::intValue).sum();
+
 		int currentQuantity = player.getLinesQuantity();
 		long lastSummation = player.getLastSummation();
-		player.setLinesQuantity(currentQuantity + 1);
-		player.setLastSummation(lastSummation + lineValue);
+		player.setLinesQuantity(currentQuantity + linesQuantity);
+		player.setLastSummation(lastSummation + linesSummation);
 
-		if (lineValue > player.getMaxLine()) {
-			player.setMaxLine(lineValue);
-		}
+		// If some line is grater than max line, change it.
+		lines.stream().filter(line -> line > player.getMaxLine()).forEach(player::setMaxLine);
 
 		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
 		double average = Math.round(tempAverage * 100) / 100;
 		player.setAverage(average);
-		
-		Team team = player.getTeam(); 
+
+		Team team = player.getTeam();
 		int currentPines = team.getPines();
-		team.setPines(currentPines + lineValue + player.getHandicap()); 
+		team.setPines(currentPines + linesSummation + (player.getHandicap() * linesQuantity));
 		teamRepository.save(team);
 
 		playerRepository.save(player);
@@ -270,32 +270,32 @@ public class PlayerServiceImp implements IPlayerService {
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
-		
+
 		Tournament activeTournament = tournamentRepository.findByActive(true);
-		
+
 		int club1 = activeTournament.getFirstClubValue();
 		int club2 = activeTournament.getSecondClubValue();
 		int club3 = activeTournament.getThirdClubValue();
-		
-		if(player.getClubGift() == null) {
+
+		if (player.getClubGift() == null) {
 			player.setClubGift(new ClubGift());
 		}
-		
-		if(serieValue >= club3) {
+
+		if (serieValue >= club3) {
 			player.getClubGift().setUpdatedDate(LocalDateTime.now());
 			int currentVal = player.getClubGift().getClub3();
 			double currentGift = player.getClubGift().getTotalGift();
 			player.getClubGift().setClub3(currentVal + 1);
 			player.getClubGift().setTotalGift(currentGift + activeTournament.getThirdClubQuota());
 			playerRepository.save(player);
-		} else if(serieValue >= club2) {
+		} else if (serieValue >= club2) {
 			player.getClubGift().setUpdatedDate(LocalDateTime.now());
 			int currentVal = player.getClubGift().getClub2();
 			double currentGift = player.getClubGift().getTotalGift();
 			player.getClubGift().setClub2(currentVal + 1);
 			player.getClubGift().setTotalGift(currentGift + activeTournament.getSecondClubQuota());
 			playerRepository.save(player);
-		} else if(serieValue >= club1 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
+		} else if (serieValue >= club1 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
 			player.getClubGift().setUpdatedDate(LocalDateTime.now());
 			int currentVal = player.getClubGift().getClub1();
 			double currentGift = player.getClubGift().getTotalGift();
@@ -303,7 +303,7 @@ public class PlayerServiceImp implements IPlayerService {
 			player.getClubGift().setTotalGift(currentGift + activeTournament.getFirstClubQuota());
 			playerRepository.save(player);
 		}
-		
+
 		if (serieValue > player.getMaxSerie()) {
 			player.setMaxSerie(serieValue);
 		} else {
@@ -1139,6 +1139,23 @@ public class PlayerServiceImp implements IPlayerService {
 
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
+	}
+
+	@Override
+	public ResponseEntity<BackUpLinesDTO> getBackUpLines(long id) throws Exception {
+		final String methodName = "getBackUpLines()";
+		logger.debug("{} - Begin", methodName);
+		Player player = playerRepository.findById(id)
+				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
+		List<BackupLines> backUp = backupRepository.findByPlayer(player);
+		BackUpLinesDTO response = new BackUpLinesDTO();
+		for (BackupLines line : backUp) {
+			response.setLine1(line.getFirstLine());
+			response.setLine2(line.getSecondLine());
+			response.setLine3(line.getThirdLine());
+		}
+		logger.debug("{} - End", methodName);
+		return ResponseEntity.ok(response);
 	}
 
 }
