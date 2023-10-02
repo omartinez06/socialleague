@@ -37,5 +37,7 @@ public interface IPlayerService {
 	ResponseEntity<Player> updateSingleHandicap(long id) throws Exception;
 	
 	ResponseEntity<BackUpLinesDTO> getBackUpLines(long id) throws Exception;
+	
+	ResponseEntity<Player> editLines(long id, List<Integer> lines) throws Exception;
 
 }

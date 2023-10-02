@@ -1158,4 +1158,56 @@ public class PlayerServiceImp implements IPlayerService {
 		return ResponseEntity.ok(response);
 	}
 
+	@Override
+	public ResponseEntity<Player> editLines(long id, List<Integer> lines) throws Exception {
+		final String methodName = "editLines()";
+		logger.debug("{} - Begin", methodName);
+		Player player = playerRepository.findById(id)
+				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
+
+		List<BackupLines> backUps = backupRepository.findByPlayer(player);
+
+		int linesQuantity = (int) lines.stream().filter(line -> line > 0).count();
+
+		int linesSummation = lines.stream().filter(line -> line > 0).mapToInt(Integer::intValue).sum();
+
+		int totalToRemove = backUps.stream()
+				.mapToInt(backup -> backup.getFirstLine() + backup.getSecondLine() + backup.getThirdLine()).sum();
+		
+		int lastPlayedLinesQuantity = 0;
+		for(BackupLines backup: backUps) {
+			if(backup.getFirstLine() > 0) {
+				lastPlayedLinesQuantity++;
+			}
+			if(backup.getSecondLine() > 0) {
+				lastPlayedLinesQuantity++;
+			}
+			if(backup.getThirdLine() > 0) {
+				lastPlayedLinesQuantity++;
+			}
+		}
+		
+		int currentQuantity = player.getLinesQuantity();
+		long lastSummation = player.getLastSummation();
+		
+		player.setLinesQuantity(currentQuantity - lastPlayedLinesQuantity);
+		currentQuantity = player.getLinesQuantity();
+		player.setLastSummation(lastSummation - totalToRemove);
+		lastSummation = player.getLastSummation();
+		
+		player.setLinesQuantity(currentQuantity + linesQuantity);
+		player.setLastSummation(lastSummation + linesSummation);
+
+		// If some line is grater than max line, change it.
+		lines.stream().filter(line -> line > player.getMaxLine()).forEach(player::setMaxLine);
+
+		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
+		double average = Math.round(tempAverage * 100) / 100;
+		player.setAverage(average);
+
+		playerRepository.save(player);
+		logger.debug("{} - End", methodName);
+		return ResponseEntity.ok(player);
+	}
+
 }

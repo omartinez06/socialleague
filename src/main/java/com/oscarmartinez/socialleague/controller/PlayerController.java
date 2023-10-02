@@ -92,4 +92,9 @@ public class PlayerController {
 		return playerService.getBackUpLines(id);
 	}
 
+	@PutMapping("lines/edit/{id}")
+	public ResponseEntity<Player> editLines(@PathVariable long id, @RequestBody List<Integer> lines) throws Exception {
+		return playerService.editLines(id, lines);
+	}
+
 }
