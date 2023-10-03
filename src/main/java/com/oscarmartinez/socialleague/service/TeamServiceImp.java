@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.transaction.Transactional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +22,11 @@ import com.oscarmartinez.socialleague.repository.IBackupLinesRepository;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
-import com.oscarmartinez.socialleague.resource.BackUpLinesDTO;
 import com.oscarmartinez.socialleague.resource.BackUpPointsDTO;
 import com.oscarmartinez.socialleague.resource.TeamDTO;
 import com.oscarmartinez.socialleague.security.JwtProvider;
 
 @Service
-@Transactional
 public class TeamServiceImp implements ITeamService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TeamServiceImp.class);

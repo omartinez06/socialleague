@@ -3,8 +3,6 @@ package com.oscarmartinez.socialleague.service;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.transaction.Transactional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +15,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.oscarmartinez.socialleague.entity.User;
 import com.oscarmartinez.socialleague.entity.Role;
+import com.oscarmartinez.socialleague.entity.User;
 import com.oscarmartinez.socialleague.repository.IRoleRepository;
 import com.oscarmartinez.socialleague.repository.IUserRepository;
 import com.oscarmartinez.socialleague.resource.JwtResponse;
@@ -27,7 +25,6 @@ import com.oscarmartinez.socialleague.resource.UserDTO;
 import com.oscarmartinez.socialleague.security.JwtProvider;
 
 @Service
-@Transactional
 public class UserServiceImp implements IUserService {
 
 	private static final Logger log = LoggerFactory.getLogger(UserServiceImp.class);

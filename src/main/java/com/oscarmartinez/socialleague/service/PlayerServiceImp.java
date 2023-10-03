@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.transaction.Transactional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,7 @@ import com.oscarmartinez.socialleague.entity.Tournament;
 import com.oscarmartinez.socialleague.entity.enums.CategoryType;
 import com.oscarmartinez.socialleague.repository.IBackupLinesRepository;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
+import com.oscarmartinez.socialleague.repository.IClubGiftRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.repository.ITournamentRepository;
@@ -36,7 +35,6 @@ import com.oscarmartinez.socialleague.security.JwtProvider;
 
 
 @Service
-@Transactional
 public class PlayerServiceImp implements IPlayerService {
 
 	private static final Logger logger = LoggerFactory.getLogger(PlayerServiceImp.class);
@@ -58,6 +56,9 @@ public class PlayerServiceImp implements IPlayerService {
 
 	@Autowired
 	private ITournamentRepository tournamentRepository;
+	
+	@Autowired
+	private IClubGiftRepository clubGiftRepository;
 
 	@Override
 	public List<Player> listPlayers() {
@@ -162,31 +163,31 @@ public class PlayerServiceImp implements IPlayerService {
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
 
 		List<BackupLines> currentBackups = backupRepository.findByPlayer(player);
+		
+		int serie = 0;
 		if (!currentBackups.isEmpty()) {
 			for (BackupLines backup : currentBackups) {
-				if (isLastWeek(backup.getAddedDate())) {
-					backupRepository.delete(backup);
-				} else {
-					for (int x = 0; x < lines.size(); x++) {
-						if (x == 0) {
-							backup.setFirstLine(lines.get(x));
-						}
-						if (x == 1) {
-							backup.setSecondLine(lines.get(x));
-						}
-						if (x == 2) {
-							backup.setThirdLine(lines.get(x));
-						}
+				for (int x = 0; x < lines.size(); x++) {
+					serie = serie + lines.get(x);
+					if (x == 0) {
+						backup.setFirstLine(lines.get(x));
+					}
+					if (x == 1) {
+						backup.setSecondLine(lines.get(x));
+					}
+					if (x == 2) {
+						backup.setThirdLine(lines.get(x));
 					}
 				}
+				backup.setPlayer(player);
+				backupRepository.save(backup);
 			}
-
-			// currentBackups.forEach(backupRepository::delete);
 		} else {
 			currentBackups = new ArrayList<>();
 			BackupLines backupLines = new BackupLines();
 			backupLines.setAddedDate(LocalDateTime.now());
 			for (int x = 0; x < lines.size(); x++) {
+				serie = serie + lines.get(x);
 				if (x == 0) {
 					backupLines.setFirstLine(lines.get(x));
 				}
@@ -212,95 +213,68 @@ public class PlayerServiceImp implements IPlayerService {
 
 		// If some line is grater than max line, change it.
 		lines.stream().filter(line -> line > player.getMaxLine()).forEach(player::setMaxLine);
+		
+		if(linesSummation > player.getMaxSerie()) {
+			player.setMaxSerie(linesSummation);
+		}
 
 		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
 		double average = Math.round(tempAverage * 100) / 100;
 		player.setAverage(average);
+		
+		/*caculate gift serie*/
+		Tournament activeTournament = tournamentRepository.findByActive(true);
+
+		if(activeTournament.isApplyClubes()) {
+			int club1 = activeTournament.getFirstClubValue();
+			int club2 = activeTournament.getSecondClubValue();
+			int club3 = activeTournament.getThirdClubValue();
+
+			if (player.getClubGift() == null) {
+				player.setClubGift(new ClubGift());
+			}
+
+			if (club3 > 0 && serie >= club3) {
+				player.getClubGift().setUpdatedDate(LocalDateTime.now());
+				int currentVal = player.getClubGift().getClub3();
+				double currentGift = player.getClubGift().getTotalGift();
+				player.getClubGift().setClub3(currentVal + 1);
+				player.getClubGift().setTotalGift(currentGift + activeTournament.getThirdClubQuota());
+				clubGiftRepository.save(player.getClubGift());
+			} else if (club2 > 0 && serie >= club2) {
+				player.getClubGift().setUpdatedDate(LocalDateTime.now());
+				int currentVal = player.getClubGift().getClub2();
+				double currentGift = player.getClubGift().getTotalGift();
+				player.getClubGift().setClub2(currentVal + 1);
+				player.getClubGift().setTotalGift(currentGift + activeTournament.getSecondClubQuota());
+				clubGiftRepository.save(player.getClubGift());
+			} else if (club1 > 0 && serie >= club1 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
+				player.getClubGift().setUpdatedDate(LocalDateTime.now());
+				int currentVal = player.getClubGift().getClub1();
+				double currentGift = player.getClubGift().getTotalGift();
+				player.getClubGift().setClub1(currentVal + 1);
+				player.getClubGift().setTotalGift(currentGift + activeTournament.getFirstClubQuota());
+				clubGiftRepository.save(player.getClubGift());
+			}
+		}
+		/*--------------------*/
 
 		Team team = player.getTeam();
 		int currentPines = team.getPines();
 		team.setPines(currentPines + linesSummation + (player.getHandicap() * linesQuantity));
 		teamRepository.save(team);
+		
+		player.setLineAverage((player.getLinesQuantity() * 100) / (activeTournament.getNumberDays() * 3));
 
 		playerRepository.save(player);
 
-		logger.debug("{} - End", methodName);
-		return ResponseEntity.ok(player);
-	}
-
-	private boolean isLastWeek(LocalDateTime fecha) {
-		LocalDateTime fechaActual = LocalDateTime.now();
-
-		// Obtener el primer día de la semana actual (lunes)
-		LocalDateTime primerDiaSemanaActual = fechaActual.with(DayOfWeek.MONDAY);
-
-		// Obtener el primer día de la semana pasada
-		LocalDateTime primerDiaSemanaPasada = primerDiaSemanaActual.minus(1, ChronoUnit.WEEKS);
-
-		// Obtener el último día de la semana pasada (domingo)
-		LocalDateTime ultimoDiaSemanaPasada = primerDiaSemanaActual.minus(1, ChronoUnit.SECONDS);
-
-		return fecha.isAfter(primerDiaSemanaPasada) && fecha.isBefore(ultimoDiaSemanaPasada);
-	}
-
-	@Override
-	public ResponseEntity<Player> addSerie(long id, int serieValue) throws Exception {
-		final String methodName = "addSerie()";
-		logger.debug("{} - Begin", methodName);
-		Player player = playerRepository.findById(id)
-				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
-
-		Tournament activeTournament = tournamentRepository.findByActive(true);
-
-		int club1 = activeTournament.getFirstClubValue();
-		int club2 = activeTournament.getSecondClubValue();
-		int club3 = activeTournament.getThirdClubValue();
-
-		if (player.getClubGift() == null) {
-			player.setClubGift(new ClubGift());
-		}
-
-		if (serieValue >= club3) {
-			player.getClubGift().setUpdatedDate(LocalDateTime.now());
-			int currentVal = player.getClubGift().getClub3();
-			double currentGift = player.getClubGift().getTotalGift();
-			player.getClubGift().setClub3(currentVal + 1);
-			player.getClubGift().setTotalGift(currentGift + activeTournament.getThirdClubQuota());
-			playerRepository.save(player);
-		} else if (serieValue >= club2) {
-			player.getClubGift().setUpdatedDate(LocalDateTime.now());
-			int currentVal = player.getClubGift().getClub2();
-			double currentGift = player.getClubGift().getTotalGift();
-			player.getClubGift().setClub2(currentVal + 1);
-			player.getClubGift().setTotalGift(currentGift + activeTournament.getSecondClubQuota());
-			playerRepository.save(player);
-		} else if (serieValue >= club1 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
-			player.getClubGift().setUpdatedDate(LocalDateTime.now());
-			int currentVal = player.getClubGift().getClub1();
-			double currentGift = player.getClubGift().getTotalGift();
-			player.getClubGift().setClub1(currentVal + 1);
-			player.getClubGift().setTotalGift(currentGift + activeTournament.getFirstClubQuota());
-			playerRepository.save(player);
-		}
-
-		if (serieValue > player.getMaxSerie()) {
-			player.setMaxSerie(serieValue);
-		} else {
-			return ResponseEntity.ok(player);
-		}
-
-		playerRepository.save(player);
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
 	}
 
 	public boolean isExist(String name, String lastName) {
-		List<Player> players = playerRepository.findAll();
-		for (Player player : players) {
-			if (player.getLastName().equalsIgnoreCase(lastName) && player.getName().equalsIgnoreCase(name))
-				return true;
-		}
-		return false;
+		List<Player> players = playerRepository.findByNameAndLastName(name, lastName);
+		return !players.isEmpty();
 	}
 
 	@Override
@@ -375,7 +349,7 @@ public class PlayerServiceImp implements IPlayerService {
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
-
+//VOY AQUI TENGO QUE VALIDAR EL CAMBIO DE LINEAS PARA EMPAREJAR PROMEDIOS Y BACKUP
 		List<BackupLines> backUps = backupRepository.findByPlayer(player);
 
 		int linesQuantity = (int) lines.stream().filter(line -> line > 0).count();

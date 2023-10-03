@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AverageInformation {
+public class ReportInformation {
 	
 	private int position;
 	private String name;
@@ -13,5 +13,6 @@ public class AverageInformation {
 	private double linesAverage;
 	private int pines;
 	private double average;
+	private String tittleCategory;
 
 }

@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.oscarmartinez.socialleague.entity.ClubGift;
 
 @Repository("clubGiftRepository")
-public interface IClubGift extends JpaRepository<ClubGift, Long> {
+public interface IClubGiftRepository extends JpaRepository<ClubGift, Long> {
 
 }

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 8.2.0.final using JasperReports Library version 6.20.3-415f9428cffdb6805c6f85bbb29ebaf18813a2ab  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Average" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="71552ce9-4150-40df-b19e-1a3c23d90c12">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="SQLite"/>
+	<style name="Table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset1" uuid="dc20f28b-04be-4364-82bd-7ba1cc593c2a">
+		<queryString>
+			<![CDATA[]]>
+		</queryString>
+	</subDataset>
+	<subDataset name="Average" uuid="2a7ac0f4-e742-440a-b98e-5c9fa101319a">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="SQLite"/>
+		<queryString language="SQL">
+			<![CDATA[]]>
+		</queryString>
+		<field name="position" class="java.lang.Integer"/>
+		<field name="name" class="java.lang.String"/>
+		<field name="category" class="java.lang.String"/>
+		<field name="linesQuantity" class="java.lang.Integer"/>
+		<field name="linesAverage" class="java.lang.Double"/>
+		<field name="pines" class="java.lang.Integer"/>
+		<field name="average" class="java.lang.Double"/>
+	</subDataset>
+	<parameter name="dedicateTo" class="java.lang.String"/>
+	<parameter name="tournamentName" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="332" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="-20" width="130" height="20" uuid="fa294fb4-22f1-44c9-8e6e-c3911b442fa0"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Dyuthi" size="12"/>
+				</textElement>
+				<text><![CDATA[Liga Social De Boliche]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="280" y="-20" width="100" height="20" uuid="7b851b4a-b677-4baa-b437-d7c7fb7e203a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Dyuthi" size="12"/>
+				</textElement>
+				<text><![CDATA[Dedicado a:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="380" y="-20" width="170" height="20" uuid="c59f0e88-f773-4c7d-8d1a-6707e4c0cbc9"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Dyuthi" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{dedicateTo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="130" y="-20" width="150" height="20" uuid="a4a963b7-6d67-4f7f-b03b-eb91749b0ed7"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Dyuthi" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{tournamentName}]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="40" backcolor="#4BE2F2" uuid="c2b05274-cac4-4ba4-98ca-c57dfbce2c78">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<staticText>
+					<reportElement x="0" y="5" width="555" height="30" uuid="f62d0186-d3b1-408f-8bc4-c1d258a75cce"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Dyuthi" size="22"/>
+					</textElement>
+					<text><![CDATA[ESTADISTICAS INDIVIDUALES]]></text>
+				</staticText>
+			</frame>
+			<componentElement>
+				<reportElement x="0" y="40" width="555" height="240" uuid="80bc963f-7818-420d-8564-b175c5e43849">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+					<property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
+					<property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
+					<property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Average" uuid="52804617-3be6-493d-bd81-a0b85d2dd014">
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="50" uuid="cff12734-9802-4264-8df9-af23ba9dd175">
+						<jr:tableHeader style="Table_TH" height="30"/>
+						<jr:tableFooter style="Table_TH" height="30"/>
+						<jr:columnHeader style="Table_CH" height="30">
+							<staticText>
+								<reportElement x="0" y="0" width="50" height="30" uuid="b6e9b8fc-3983-4651-a012-03178e8ea7dd"/>
+								<text><![CDATA[POS]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="Table_CH" height="30"/>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement x="0" y="0" width="50" height="30" uuid="776eb0bc-9400-4068-9e71-cfe71a502957"/>
+								<textFieldExpression><![CDATA[$F{position}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="140" uuid="6ca07ff9-e2d5-4527-a22d-108dbb4ba3ee">
+						<jr:tableHeader style="Table_TH" height="30"/>
+						<jr:tableFooter style="Table_TH" height="30"/>
+						<jr:columnHeader style="Table_CH" height="30">
+							<staticText>
+								<reportElement x="0" y="0" width="140" height="30" uuid="9014b839-5565-46a3-ba39-a3e8d34bfc5c"/>
+								<text><![CDATA[NOMBRE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="Table_CH" height="30"/>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement x="0" y="0" width="140" height="30" uuid="9418b71a-fc8c-4048-bac6-2afc735a3b7a"/>
+								<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="120" uuid="c86e7888-2fb9-43d9-b7dd-e30b5bc11c55">
+						<jr:tableHeader style="Table_TH" height="30"/>
+						<jr:tableFooter style="Table_TH" height="30"/>
+						<jr:columnHeader style="Table_CH" height="30">
+							<staticText>
+								<reportElement x="0" y="0" width="120" height="30" uuid="93f36f91-f174-472e-aab1-f0efd73b9783"/>
+								<text><![CDATA[CATEGORIA]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="Table_CH" height="30"/>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement x="0" y="0" width="120" height="30" uuid="f8e40a14-1b38-4f11-8cfb-a57e44be3e08"/>
+								<textFieldExpression><![CDATA[$F{category}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="56" uuid="46d43941-78f2-4e83-9403-1b98e4189b33">
+						<jr:tableHeader style="Table_TH" height="30"/>
+						<jr:tableFooter style="Table_TH" height="30"/>
+						<jr:columnHeader style="Table_CH" height="30">
+							<staticText>
+								<reportElement x="0" y="0" width="56" height="30" uuid="9c4c1d71-44bd-433e-9e7b-9e0f683d4ce2"/>
+								<text><![CDATA[LIN]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="Table_CH" height="30"/>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement x="0" y="0" width="56" height="30" uuid="21a49467-7a46-43f0-adc4-f4c8594b72e6"/>
+								<textFieldExpression><![CDATA[$F{linesQuantity}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="68" uuid="cccba588-5df0-46e3-adce-21ed077e758c">
+						<jr:tableHeader style="Table_TH" height="30"/>
+						<jr:tableFooter style="Table_TH" height="30"/>
+						<jr:columnHeader style="Table_CH" height="30">
+							<staticText>
+								<reportElement x="0" y="0" width="68" height="30" uuid="734dd68e-742a-453c-929f-95d5b5b283e2"/>
+								<text><![CDATA[% Lin Jug]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="Table_CH" height="30"/>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement x="0" y="0" width="68" height="30" uuid="64373c0c-1970-4ba3-9312-bb8b697536f5"/>
+								<textFieldExpression><![CDATA[$F{linesAverage}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="60" uuid="e0fd8f07-593d-45a9-b43c-41e962766ef3">
+						<jr:tableHeader style="Table_TH" height="30"/>
+						<jr:tableFooter style="Table_TH" height="30"/>
+						<jr:columnHeader style="Table_CH" height="30">
+							<staticText>
+								<reportElement x="0" y="0" width="60" height="30" uuid="586d1012-1123-4586-9fa9-74c0abb2e44b"/>
+								<text><![CDATA[PINES]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="Table_CH" height="30"/>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement x="0" y="0" width="60" height="30" uuid="69e571a1-994b-4538-92fa-df543de1ff2f"/>
+								<textFieldExpression><![CDATA[$F{pines}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="60" uuid="3ed3ce21-d871-4306-bade-673810958003">
+						<jr:tableHeader style="Table_TH" height="30"/>
+						<jr:tableFooter style="Table_TH" height="30"/>
+						<jr:columnHeader style="Table_CH" height="30">
+							<staticText>
+								<reportElement x="0" y="0" width="60" height="30" uuid="af96719e-5010-4602-9c15-1857307cc12a"/>
+								<text><![CDATA[PROM]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="Table_CH" height="30"/>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement x="0" y="0" width="60" height="30" uuid="2aff3b38-06ff-4930-831a-4c3d97984d30"/>
+								<textFieldExpression><![CDATA[$F{average}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="61" splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="125" splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

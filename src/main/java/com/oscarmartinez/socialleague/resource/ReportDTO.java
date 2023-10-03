@@ -7,10 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AverageReportDTO {
+public class ReportDTO {
 	
 	private String gender;
 	private String category;
-	private List<AverageInformation> averages;
+	private List<ReportInformation> averages;
 
 }

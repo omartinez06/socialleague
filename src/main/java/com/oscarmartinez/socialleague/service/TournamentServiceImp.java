@@ -6,11 +6,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,8 @@ import com.oscarmartinez.socialleague.repository.ICategoryRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.repository.ITournamentRepository;
-import com.oscarmartinez.socialleague.resource.AverageInformation;
-import com.oscarmartinez.socialleague.resource.AverageReportDTO;
+import com.oscarmartinez.socialleague.resource.ReportInformation;
+import com.oscarmartinez.socialleague.resource.ReportDTO;
 import com.oscarmartinez.socialleague.resource.Constants;
 import com.oscarmartinez.socialleague.resource.TournamentDTO;
 
@@ -47,7 +46,6 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 @Service
-@Transactional
 public class TournamentServiceImp implements ITournamentService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TournamentServiceImp.class);
@@ -63,6 +61,8 @@ public class TournamentServiceImp implements ITournamentService {
 
 	@Autowired
 	private ITeamRepository teamRepository;
+
+	private List<Player> modifiedPlayers = new ArrayList<>();
 
 	@Override
 	public ResponseEntity<HttpStatus> startNewTournament(TournamentDTO newTournament) throws Exception {
@@ -187,38 +187,9 @@ public class TournamentServiceImp implements ITournamentService {
 	public void endTournament() {
 		final String methodName = "endTournament()";
 		logger.debug("{} - Begin", methodName);
-		evaluateCategoryToUp();
-		evaluateCategoryToDown();
+		evaluateCategoryToChangePlayer();
 		evaluateCategoryToDownTeam();
 		evaluateCategoryToUpTeam();
-		logger.debug("{} - End", methodName);
-	}
-
-	public void evaluateCategoryToDown() {
-		final String methodName = "evaluateCategoryToDown()";
-		logger.debug("{} - Begin", methodName);
-		List<Category> categories = categoryRepository.findAll();
-
-		for (Category category : categories) {
-			if (category.getLevel().equals(CategoryLevel.D) || category.getType().equals(CategoryType.TEAM))
-				continue;
-
-			List<Player> players = playerRepository.findByCategory(category);
-			Collections.sort(players, new Comparator<Player>() {
-				@Override
-				public int compare(Player player1, Player player2) {
-					return Double.compare(player1.getAverage(), player2.getAverage());
-				}
-			});
-
-			// Get 3 people with the lowest average
-			List<Player> playersLowestAverage = players.subList(0, Math.min(3, players.size()));
-
-			for (Player player : playersLowestAverage) {
-				player.setCategory(getDownCategory(player.getCategory()));
-				playerRepository.save(player);
-			}
-		}
 		logger.debug("{} - End", methodName);
 	}
 
@@ -246,26 +217,34 @@ public class TournamentServiceImp implements ITournamentService {
 		}
 	}
 
-	public void evaluateCategoryToUp() {
+	public void evaluateCategoryToChangePlayer() {
 		final String methodName = "evaluateCategoryToUp()";
 		logger.debug("{} - Begin", methodName);
 		List<Category> categories = categoryRepository.findAll();
 		List<Player> players = playerRepository.findAll();
-		if (!players.isEmpty()) {
-			for (Player player : players) {
-				if (player.getCategory().getLevel().equals(CategoryLevel.A))
+
+		for (Player player : players) {
+			if (player.getCategory().getLevel().equals(CategoryLevel.A))
+				continue;
+
+			if (player.getAverage() >= player.getCategory().getMinAverage()
+					&& player.getAverage() <= player.getCategory().getMaxAverage())
+				continue;
+
+			for (Category category : categories) {
+				if (!category.getType().equals(player.getCategory().getType()))
 					continue;
 
-				for (Category category : categories) {
-					if (category.getType().equals(player.getCategory().getType())
-							&& category.getMinAverage() >= player.getAverage()
-							&& category.getMaxAverage() <= player.getAverage()) {
-						logger.debug("{} - player {} goes to category {}", methodName, player.getName(),
-								category.getLevel());
-						player.setCategory(category);
-					}
+				if (player.getAverage() >= category.getMinAverage()
+						&& player.getAverage() <= category.getMaxAverage()) {
+					logger.debug("{} - player {} goes to category {}", methodName, player.getName(),
+							category.getLevel());
+					player.setCategory(category);
+					player.setUpdatedBy("SYSTEM");
+					player.setUpdatedDate(new Date());
+					playerRepository.save(player);
+					modifiedPlayers.add(player);
 				}
-				playerRepository.save(player);
 			}
 		}
 		logger.debug("{} - End", methodName);
@@ -329,28 +308,70 @@ public class TournamentServiceImp implements ITournamentService {
 	@Override
 	public String exportReport(String reportFormat) throws JRException, IOException {
 		Tournament tournament = tournamentRepository.findByActive(true);
+
+		Collection<ReportDTO> collectionAverage = getAverageReport();
+		Collection<ReportDTO> collectionPines = getBiggestLinesReport();
+		Collection<ReportDTO> collectionSeries = getSerieReport();
+		
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("dedicateTo", tournament != null ? tournament.getDedicateTo() : "");
+		parameters.put("tournamentName", tournament != null ? tournament.getTournamentName() : "");
+
+		InputStream jrxmlInputStreamAverage = new ClassPathResource("Promedios.jrxml").getInputStream();
+		JasperDesign designAverage = JRXmlLoader.load(jrxmlInputStreamAverage);
+		JasperReport jasperReportAverage = JasperCompileManager.compileReport(designAverage);
+		JasperPrint jasperPrintAverage = JasperFillManager.fillReport(jasperReportAverage, parameters,
+				new JRBeanCollectionDataSource(collectionAverage));
+		
+		InputStream jrxmlInputStreamPines = new ClassPathResource("LineasAltas.jrxml").getInputStream();
+		JasperDesign designPines = JRXmlLoader.load(jrxmlInputStreamPines);
+		JasperReport jasperReportPines = JasperCompileManager.compileReport(designPines);
+		JasperPrint jasperPrintPines = JasperFillManager.fillReport(jasperReportPines, parameters,
+				new JRBeanCollectionDataSource(collectionPines));
+		
+		InputStream jrxmlInputStreamSeries = new ClassPathResource("Series.jrxml").getInputStream();
+		JasperDesign designSeries = JRXmlLoader.load(jrxmlInputStreamSeries);
+		JasperReport jasperReportSeries = JasperCompileManager.compileReport(designSeries);
+		JasperPrint jasperPrintSeries = JasperFillManager.fillReport(jasperReportSeries, parameters,
+				new JRBeanCollectionDataSource(collectionSeries));
+
+		if (reportFormat.equalsIgnoreCase("html")) {
+			JasperExportManager.exportReportToHtmlFile(jasperPrintAverage, "promedios.html");
+			JasperExportManager.exportReportToHtmlFile(jasperPrintPines, "linea_alta.html");
+			JasperExportManager.exportReportToHtmlFile(jasperPrintSeries, "serie_alta.html");
+		}
+
+		if (reportFormat.equalsIgnoreCase("pdf")) {
+			JasperExportManager.exportReportToPdfFile(jasperPrintAverage, "promedios.pdf");
+			JasperExportManager.exportReportToPdfFile(jasperPrintPines, "linea_alta.pdf");
+			JasperExportManager.exportReportToPdfFile(jasperPrintSeries, "serie_alta.pdf");
+		}
+		return "Reports generated successfully";
+	}
+	
+	public Collection<ReportDTO> getSerieReport() {
 		List<Category> categories = categoryRepository.findAll();
-
-		List<AverageInformation> information = new ArrayList<>();
-
-		Collection<AverageReportDTO> collection = new ArrayList<>();
-		List<AverageReportDTO> reportAverage = new ArrayList<>();
+		List<ReportInformation> information = new ArrayList<>();
+		Collection<ReportDTO> collection = new ArrayList<>();
+		List<ReportDTO> reportAverage = new ArrayList<>();
 		for (Category category : categories) {
-			int position = 1;
+			information = new ArrayList<>();
 			List<Player> players = playerRepository.findByCategory(category);
 			if (!players.isEmpty()) {
 				for (Player player : players) {
-					AverageInformation dto = new AverageInformation();
-					dto.setLinesAverage(player.getLineAverage());
-					dto.setLinesQuantity(player.getLinesQuantity());
+					if(player.getLinesQuantity() < 5)
+						continue;
+					
+					ReportInformation dto = new ReportInformation();
 					dto.setName(player.getName() + " " + player.getLastName());
-					dto.setPines((int) player.getLastSummation());
-					dto.setAverage(player.getAverage());
-					dto.setPosition(position++);
+					dto.setPines(player.getMaxSerie());
+					dto.setPosition(0);
+					dto.setTittleCategory("CATEGORIA " + category.getLevel() + ", RAMA "
+							+ (category.getType().equals(CategoryType.MALE) ? "MASCULINA" : "FEMENINA"));
 					information.add(dto);
 				}
-				AverageReportDTO average = new AverageReportDTO();
-				average.setAverages(information);
+				ReportDTO average = new ReportDTO();
+				average.setAverages(sortArrayByPines(information));
 				average.setCategory(category.getLevel().toString());
 				average.setGender(category.getType().toString());
 				reportAverage.add(average);
@@ -358,26 +379,106 @@ public class TournamentServiceImp implements ITournamentService {
 		}
 
 		collection.addAll(reportAverage);
+		return collection;
+	}
 
-		InputStream jrxmlInputStream = new ClassPathResource("Promedios.jrxml").getInputStream();
-		JasperDesign design = JRXmlLoader.load(jrxmlInputStream);
-		JasperReport jasperReport = JasperCompileManager.compileReport(design);
-
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("dedicateTo", tournament.getDedicateTo());
-		parameters.put("tournamentName", tournament.getTournamentName());
-
-		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters,
-				new JRBeanCollectionDataSource(collection));
-
-		if (reportFormat.equalsIgnoreCase("html")) {
-			JasperExportManager.exportReportToHtmlFile(jasperPrint, "average.html");
+	public Collection<ReportDTO> getBiggestLinesReport() {
+		List<Category> categories = categoryRepository.findAll();
+		List<ReportInformation> information = new ArrayList<>();
+		Collection<ReportDTO> collection = new ArrayList<>();
+		List<ReportDTO> reportAverage = new ArrayList<>();
+		for (Category category : categories) {
+			information = new ArrayList<>();
+			List<Player> players = playerRepository.findByCategory(category);
+			if (!players.isEmpty()) {
+				for (Player player : players) {
+					if(player.getLinesQuantity() < 5)
+						continue;
+					
+					ReportInformation dto = new ReportInformation();
+					dto.setName(player.getName() + " " + player.getLastName());
+					dto.setPines(player.getMaxLine());
+					dto.setPosition(0);
+					dto.setTittleCategory("CATEGORIA " + category.getLevel() + ", RAMA "
+							+ (category.getType().equals(CategoryType.MALE) ? "MASCULINA" : "FEMENINA"));
+					information.add(dto);
+				}
+				ReportDTO average = new ReportDTO();
+				average.setAverages(sortArrayByPines(information));
+				average.setCategory(category.getLevel().toString());
+				average.setGender(category.getType().toString());
+				reportAverage.add(average);
+			}
 		}
 
-		if (reportFormat.equalsIgnoreCase("pdf")) {
-			JasperExportManager.exportReportToPdfFile(jasperPrint, "average.pdf");
+		collection.addAll(reportAverage);
+		return collection;
+	}
+
+	public Collection<ReportDTO> getAverageReport() {
+		List<Category> categories = categoryRepository.findAll();
+		List<ReportInformation> information = new ArrayList<>();
+		Collection<ReportDTO> collection = new ArrayList<>();
+		List<ReportDTO> reportAverage = new ArrayList<>();
+		for (Category category : categories) {
+			information = new ArrayList<>();
+			List<Player> players = playerRepository.findByCategory(category);
+			if (!players.isEmpty()) {
+				for (Player player : players) {
+					if(player.getLinesQuantity() < 5)
+						continue;
+					
+					ReportInformation dto = new ReportInformation();
+					dto.setLinesAverage(player.getLineAverage());
+					dto.setLinesQuantity(player.getLinesQuantity());
+					dto.setName(player.getName() + " " + player.getLastName());
+					dto.setPines((int) player.getLastSummation());
+					dto.setAverage(player.getAverage());
+					dto.setPosition(0);
+					dto.setTittleCategory("CATEGORIA " + category.getLevel() + ", RAMA "
+							+ (category.getType().equals(CategoryType.MALE) ? "MASCULINA" : "FEMENINA"));
+					information.add(dto);
+				}
+				ReportDTO average = new ReportDTO();
+				average.setAverages(sortArrayByAverage(information));
+				average.setCategory(category.getLevel().toString());
+				average.setGender(category.getType().toString());
+				reportAverage.add(average);
+			}
 		}
-		return "Reports generated successfully";
+
+		collection.addAll(reportAverage);
+		return collection;
+	}
+
+	public List<ReportInformation> sortArrayByPines(List<ReportInformation> currentArray) {
+		Collections.sort(currentArray, new Comparator<ReportInformation>() {
+			@Override
+			public int compare(ReportInformation info1, ReportInformation info2) {
+				return Integer.compare(info2.getPines(), info1.getPines());
+			}
+		});
+
+		int position = 1;
+		for (ReportInformation information : currentArray) {
+			information.setPosition(position++);
+		}
+		return currentArray;
+	}
+
+	public List<ReportInformation> sortArrayByAverage(List<ReportInformation> currentArray) {
+		Collections.sort(currentArray, new Comparator<ReportInformation>() {
+			@Override
+			public int compare(ReportInformation info1, ReportInformation info2) {
+				return Double.compare(info2.getAverage(), info1.getAverage());
+			}
+		});
+
+		int position = 1;
+		for (ReportInformation information : currentArray) {
+			information.setPosition(position++);
+		}
+		return currentArray;
 	}
 
 }
