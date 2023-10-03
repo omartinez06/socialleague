@@ -30,8 +30,6 @@ public interface IPlayerService {
 
 	List<Player> findAllByTeam(long teamId) throws Exception;
 	
-	String exportReport(String reportFormat) throws JRException, IOException;
-	
 	ResponseEntity<HttpStatus> updateHandicap() throws Exception;
 	
 	ResponseEntity<Player> updateSingleHandicap(long id) throws Exception;

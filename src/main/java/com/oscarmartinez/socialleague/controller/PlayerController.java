@@ -72,11 +72,6 @@ public class PlayerController {
 		return playerService.findAllByTeam(id);
 	}
 
-	@GetMapping("report/{format}")
-	public String generateReport(@PathVariable String format) throws JRException, IOException {
-		return playerService.exportReport(format);
-	}
-
 	@GetMapping("hdcp/general")
 	public ResponseEntity<HttpStatus> updateGeneralHdcp() throws Exception {
 		return playerService.updateHandicap();

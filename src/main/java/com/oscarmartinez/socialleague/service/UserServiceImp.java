@@ -3,6 +3,8 @@ package com.oscarmartinez.socialleague.service;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.transaction.Transactional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import com.oscarmartinez.socialleague.resource.UserDTO;
 import com.oscarmartinez.socialleague.security.JwtProvider;
 
 @Service
+@Transactional
 public class UserServiceImp implements IUserService {
 
 	private static final Logger log = LoggerFactory.getLogger(UserServiceImp.class);

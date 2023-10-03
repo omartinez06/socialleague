@@ -1,13 +1,21 @@
 package com.oscarmartinez.socialleague.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,10 +31,23 @@ import com.oscarmartinez.socialleague.repository.ICategoryRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.repository.ITournamentRepository;
+import com.oscarmartinez.socialleague.resource.AverageInformation;
+import com.oscarmartinez.socialleague.resource.AverageReportDTO;
 import com.oscarmartinez.socialleague.resource.Constants;
 import com.oscarmartinez.socialleague.resource.TournamentDTO;
 
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
+
 @Service
+@Transactional
 public class TournamentServiceImp implements ITournamentService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TournamentServiceImp.class);
@@ -39,7 +60,7 @@ public class TournamentServiceImp implements ITournamentService {
 
 	@Autowired
 	private ICategoryRepository categoryRepository;
-	
+
 	@Autowired
 	private ITeamRepository teamRepository;
 
@@ -112,16 +133,16 @@ public class TournamentServiceImp implements ITournamentService {
 				currentTournament.setThirdClubValue((int) value);
 				break;
 			case Constants.TOURNAMENT_FIRST_CLUB_QUOTA:
-				currentTournament.setFirstClubQuota((double) value);
+				currentTournament.setFirstClubQuota((int) value);
 				break;
 			case Constants.TOURNAMENT_SECOND_CLUB_QUOTA:
-				currentTournament.setSecondClubQuota((double) value);
+				currentTournament.setSecondClubQuota((int) value);
 				break;
 			case Constants.TOURNAMENT_THIRD_CLUB_QUOTA:
-				currentTournament.setThirdClubQuota((double) value);
+				currentTournament.setThirdClubQuota((int) value);
 				break;
 			case Constants.TOURNAMENT_LINES_AVERAGE:
-				currentTournament.setLinesAverage((double) value);
+				currentTournament.setLinesAverage(Double.parseDouble(value.toString()));
 				break;
 			case Constants.TOURNAMENT_ACTIVE:
 				currentTournament.setActive((boolean) value);
@@ -130,7 +151,7 @@ public class TournamentServiceImp implements ITournamentService {
 				currentTournament.setPointsForHDCP((int) value);
 				break;
 			case Constants.TOURNAMENT_AVERAGE_FOR_HDCP:
-				currentTournament.setAverageForHDCP((double) value);
+				currentTournament.setAverageForHDCP(Double.parseDouble(value.toString()));
 				break;
 			case Constants.TOURNAMENT_NUMBER_DAYS:
 				currentTournament.setNumberDays((int) value);
@@ -144,18 +165,18 @@ public class TournamentServiceImp implements ITournamentService {
 
 		return ResponseEntity.ok(currentTournament);
 	}
-	
+
 	@Override
 	public ResponseEntity<Tournament> finishTournament(long id) throws Exception {
 		final String methodName = "finishTournament()";
 		logger.debug("{} - Begin", methodName);
 		Tournament tournament = tournamentRepository.findById(id)
 				.orElseThrow(() -> new Exception("Tournament does not exist with id: " + id));
-		
-		if(!tournament.isActive()) {
+
+		if (!tournament.isActive()) {
 			throw new ResponseStatusException(HttpStatus.NOT_MODIFIED, "Tournament was already finished");
 		}
-		
+
 		tournament.setActive(false);
 		tournamentRepository.save(tournament);
 		endTournament();
@@ -213,7 +234,7 @@ public class TournamentServiceImp implements ITournamentService {
 			return category;
 		}
 	}
-	
+
 	public Category getUpCategory(Category category) {
 		switch (category.getLevel()) {
 		case B:
@@ -249,12 +270,12 @@ public class TournamentServiceImp implements ITournamentService {
 		}
 		logger.debug("{} - End", methodName);
 	}
-	
+
 	public void evaluateCategoryToDownTeam() {
 		final String methodName = "evaluateCategoryToDownTeam()";
 		logger.debug("{} - Begin", methodName);
 		List<Category> categories = categoryRepository.findAll();
-		
+
 		for (Category category : categories) {
 			if (category.getLevel().equals(CategoryLevel.C) || !category.getType().equals(CategoryType.TEAM))
 				continue;
@@ -275,24 +296,23 @@ public class TournamentServiceImp implements ITournamentService {
 				teamRepository.save(team);
 			}
 		}
-		
-		
+
 		logger.debug("{} - End", methodName);
 	}
-	
+
 	public void evaluateCategoryToUpTeam() {
 		final String methodName = "evaluateCategoryToUpTeam()";
 		logger.debug("{} - Begin", methodName);
 		List<Category> categories = categoryRepository.findAll();
-		
+
 		for (Category category : categories) {
 			if (category.getLevel().equals(CategoryLevel.A) || !category.getType().equals(CategoryType.TEAM))
 				continue;
 
 			List<Team> teams = teamRepository.findByCategory(category);
-			
+
 			// sort desc list by point using Comparator
-	        Collections.sort(teams, Comparator.comparingInt(Team::getPoints).reversed());
+			Collections.sort(teams, Comparator.comparingInt(Team::getPoints).reversed());
 
 			// Get 2 teams with the highest average
 			List<Team> teamsHighestPoints = teams.subList(0, Math.min(2, teams.size()));
@@ -302,9 +322,62 @@ public class TournamentServiceImp implements ITournamentService {
 				teamRepository.save(team);
 			}
 		}
-		
-		
+
 		logger.debug("{} - End", methodName);
+	}
+
+	@Override
+	public String exportReport(String reportFormat) throws JRException, IOException {
+		Tournament tournament = tournamentRepository.findByActive(true);
+		List<Category> categories = categoryRepository.findAll();
+
+		List<AverageInformation> information = new ArrayList<>();
+
+		Collection<AverageReportDTO> collection = new ArrayList<>();
+		List<AverageReportDTO> reportAverage = new ArrayList<>();
+		for (Category category : categories) {
+			int position = 1;
+			List<Player> players = playerRepository.findByCategory(category);
+			if (!players.isEmpty()) {
+				for (Player player : players) {
+					AverageInformation dto = new AverageInformation();
+					dto.setLinesAverage(player.getLineAverage());
+					dto.setLinesQuantity(player.getLinesQuantity());
+					dto.setName(player.getName() + " " + player.getLastName());
+					dto.setPines((int) player.getLastSummation());
+					dto.setAverage(player.getAverage());
+					dto.setPosition(position++);
+					information.add(dto);
+				}
+				AverageReportDTO average = new AverageReportDTO();
+				average.setAverages(information);
+				average.setCategory(category.getLevel().toString());
+				average.setGender(category.getType().toString());
+				reportAverage.add(average);
+			}
+		}
+
+		collection.addAll(reportAverage);
+
+		InputStream jrxmlInputStream = new ClassPathResource("Promedios.jrxml").getInputStream();
+		JasperDesign design = JRXmlLoader.load(jrxmlInputStream);
+		JasperReport jasperReport = JasperCompileManager.compileReport(design);
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("dedicateTo", tournament.getDedicateTo());
+		parameters.put("tournamentName", tournament.getTournamentName());
+
+		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters,
+				new JRBeanCollectionDataSource(collection));
+
+		if (reportFormat.equalsIgnoreCase("html")) {
+			JasperExportManager.exportReportToHtmlFile(jasperPrint, "average.html");
+		}
+
+		if (reportFormat.equalsIgnoreCase("pdf")) {
+			JasperExportManager.exportReportToPdfFile(jasperPrint, "average.pdf");
+		}
+		return "Reports generated successfully";
 	}
 
 }

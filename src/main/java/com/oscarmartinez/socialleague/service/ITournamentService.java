@@ -1,5 +1,6 @@
 package com.oscarmartinez.socialleague.service;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 
 import com.oscarmartinez.socialleague.entity.Tournament;
 import com.oscarmartinez.socialleague.resource.TournamentDTO;
+
+import net.sf.jasperreports.engine.JRException;
 
 public interface ITournamentService {
 
@@ -17,5 +20,7 @@ public interface ITournamentService {
 	ResponseEntity<Tournament> updateTournamentInformation(long id, Map<String, Object> tournamentInfo) throws Exception;
 	
 	ResponseEntity<Tournament> finishTournament(long id) throws Exception;
+	
+	String exportReport(String reportFormat) throws JRException, IOException;
 
 }

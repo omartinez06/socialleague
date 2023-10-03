@@ -28,9 +28,9 @@ public class Tournament {
 	private int firstClubValue;
 	private int secondClubValue;
 	private int thirdClubValue;
-	private double firstClubQuota;
-	private double secondClubQuota;
-	private double thirdClubQuota;
+	private int firstClubQuota;
+	private int secondClubQuota;
+	private int thirdClubQuota;
 	private double linesAverage;
 	private int numberDays;
 	private boolean active;

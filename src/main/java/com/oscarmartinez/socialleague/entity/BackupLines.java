@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,10 +36,12 @@ public class BackupLines {
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "player_id", referencedColumnName = "id")
+	@JsonIgnore
 	private Player player;
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "team_id", referencedColumnName = "id")
+	@JsonIgnore
 	private Team team;
 
 }

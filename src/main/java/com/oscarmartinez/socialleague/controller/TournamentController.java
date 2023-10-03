@@ -1,5 +1,6 @@
 package com.oscarmartinez.socialleague.controller;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.oscarmartinez.socialleague.entity.Tournament;
 import com.oscarmartinez.socialleague.resource.TournamentDTO;
 import com.oscarmartinez.socialleague.service.ITournamentService;
+
+import net.sf.jasperreports.engine.JRException;
 
 @CrossOrigin("*")
 @RestController
@@ -46,6 +49,11 @@ public class TournamentController {
 	@GetMapping("/finish/{id}")
 	public ResponseEntity<Tournament> finishTournament(@PathVariable long id) throws Exception {
 		return tournamentService.finishTournament(id);
+	}
+	
+	@GetMapping("report/{format}")
+	public String generateReport(@PathVariable String format) throws JRException, IOException {
+		return tournamentService.exportReport(format);
 	}
 
 }

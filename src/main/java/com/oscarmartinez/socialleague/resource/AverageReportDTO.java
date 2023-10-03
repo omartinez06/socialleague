@@ -1,5 +1,7 @@
 package com.oscarmartinez.socialleague.resource;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,12 +9,8 @@ import lombok.Setter;
 @Setter
 public class AverageReportDTO {
 	
-	private int position;
-	private String lastName;
-	private String name;
+	private String gender;
 	private String category;
-	private int lines;
-	private long pines;
-	private double average;
+	private List<AverageInformation> averages;
 
 }
