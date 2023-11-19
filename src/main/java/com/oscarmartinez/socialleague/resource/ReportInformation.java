@@ -14,5 +14,7 @@ public class ReportInformation {
 	private int pines;
 	private double average;
 	private String tittleCategory;
+	private String team;
+	private int points;
 
 }

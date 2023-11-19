@@ -36,5 +36,7 @@ public class Tournament {
 	private boolean active;
 	private int pointsForHDCP;
 	private double averageForHDCP;
+	private int minHDCP;
+	private int maxHDCP;
 
 }

@@ -1,5 +1,7 @@
 package com.oscarmartinez.socialleague.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,4 +13,6 @@ import com.oscarmartinez.socialleague.entity.enums.CategoryType;
 public interface ICategoryRepository extends JpaRepository<Category, Long> {
 
 	Category findByLevelAndType(CategoryLevel level, CategoryType type);
+	
+	List<Category> findByType(CategoryType type);
 }

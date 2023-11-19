@@ -42,5 +42,13 @@ public class Team {
 	
 	@OneToOne(mappedBy = "team")
 	private BackupLines lastLines;
+	
+	@Override
+	public String toString() {
+		return "Team: " + name + "\n"
+				+ "Pines: " + pines + "\n"
+				+ "Points: " + points + "\n"
+				+ "Category: " + category.getLevel().toString() + "\n";
+	}
 
 }

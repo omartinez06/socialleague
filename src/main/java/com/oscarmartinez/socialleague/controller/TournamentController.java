@@ -3,6 +3,8 @@ package com.oscarmartinez.socialleague.controller;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.mail.MessagingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,15 +47,20 @@ public class TournamentController {
 			@RequestBody Map<String, Object> tournamentInfo) throws Exception {
 		return tournamentService.updateTournamentInformation(id, tournamentInfo);
 	}
-	
+
 	@GetMapping("/finish/{id}")
 	public ResponseEntity<Tournament> finishTournament(@PathVariable long id) throws Exception {
 		return tournamentService.finishTournament(id);
 	}
-	
+
 	@GetMapping("report/{format}")
 	public String generateReport(@PathVariable String format) throws JRException, IOException {
 		return tournamentService.exportReport(format);
+	}
+
+	@GetMapping("report/send")
+	public ResponseEntity<?> sendEmailWithAttachment() throws MessagingException, IOException {
+		return tournamentService.sendEmailWithAttachment();
 	}
 
 }

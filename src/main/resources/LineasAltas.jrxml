@@ -92,7 +92,7 @@
 					<textElement textAlignment="Center" verticalAlignment="Middle">
 						<font fontName="Dyuthi" size="22"/>
 					</textElement>
-					<text><![CDATA[ESTADISTICAS INDIVIDUALES (LINEA ALTA)]]></text>
+					<text><![CDATA[LINEA ALTA]]></text>
 				</staticText>
 			</frame>
 		</band>
@@ -133,7 +133,6 @@
 									<text><![CDATA[POS]]></text>
 								</staticText>
 							</jr:columnHeader>
-							<jr:columnFooter style="Table_CH" height="30" rowSpan="1"/>
 							<jr:detailCell style="Table_TD" height="30">
 								<textField>
 									<reportElement x="0" y="0" width="50" height="30" uuid="36033ea8-2de0-4594-85fb-7d3044c55993"/>
@@ -151,11 +150,10 @@
 									<text><![CDATA[NOMBRE]]></text>
 								</staticText>
 							</jr:columnHeader>
-							<jr:columnFooter style="Table_CH" height="30" rowSpan="1"/>
 							<jr:detailCell style="Table_TD" height="30">
 								<textField>
 									<reportElement x="0" y="0" width="270" height="30" uuid="b88d26df-06d2-4cb4-b47a-d57ff6b340b4"/>
-									<textElement textAlignment="Center" verticalAlignment="Middle"/>
+									<textElement textAlignment="Left" verticalAlignment="Middle"/>
 									<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
@@ -169,7 +167,6 @@
 									<text><![CDATA[PINES]]></text>
 								</staticText>
 							</jr:columnHeader>
-							<jr:columnFooter style="Table_CH" height="30" rowSpan="1"/>
 							<jr:detailCell style="Table_TD" height="30">
 								<textField>
 									<reportElement x="0" y="0" width="85" height="30" uuid="e6e43261-fbe9-4ffd-b1c5-7bb0aae9ff00"/>

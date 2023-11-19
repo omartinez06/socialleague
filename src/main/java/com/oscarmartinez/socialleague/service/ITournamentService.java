@@ -3,6 +3,8 @@ package com.oscarmartinez.socialleague.service;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.mail.MessagingException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -22,5 +24,6 @@ public interface ITournamentService {
 	ResponseEntity<Tournament> finishTournament(long id) throws Exception;
 	
 	String exportReport(String reportFormat) throws JRException, IOException;
-
+	
+	ResponseEntity<?> sendEmailWithAttachment() throws MessagingException, IOException;
 }

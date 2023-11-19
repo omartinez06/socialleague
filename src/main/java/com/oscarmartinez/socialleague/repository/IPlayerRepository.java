@@ -17,5 +17,7 @@ public interface IPlayerRepository extends JpaRepository<Player, Long> {
 	List<Player> findByCategory(Category category);
 	
 	List<Player> findByNameAndLastName(String name, String lastName);
+	
+	List<Player> findBySendReportMail(boolean sendReportMail);
 
 }
