@@ -86,6 +86,7 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setMaxSerie(player.getMaxSerie());
 		newPlayer.setMail(player.getMail());
 		newPlayer.setLineAverage(player.getLineAverage());
+		newPlayer.setSendReportMail(player.isSendMail());
 		Team team = teamRepository.findById(player.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
 
@@ -122,6 +123,7 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setMaxSerie(playerDetail.getMaxSerie());
 		player.setMail(playerDetail.getMail());
 		player.setLineAverage(playerDetail.getLineAverage());
+		player.setSendReportMail(playerDetail.isSendMail());
 
 		Team team = teamRepository.findById(playerDetail.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
