@@ -34,12 +34,12 @@ public class BackupLines {
 	private int thirdLine;
 	private LocalDateTime addedDate;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "player_id", referencedColumnName = "id")
-	@JsonIgnore
+	@OneToOne
+    @JoinColumn(name = "player_id", referencedColumnName = "id")
+    @JsonIgnore
 	private Player player;
 
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne
 	@JoinColumn(name = "team_id", referencedColumnName = "id")
 	@JsonIgnore
 	private Team team;

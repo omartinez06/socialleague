@@ -48,6 +48,7 @@ import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.entity.Tournament;
 import com.oscarmartinez.socialleague.entity.enums.CategoryLevel;
 import com.oscarmartinez.socialleague.entity.enums.CategoryType;
+import com.oscarmartinez.socialleague.repository.IBackupLinesRepository;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
 import com.oscarmartinez.socialleague.repository.IClubGiftRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
@@ -95,9 +96,12 @@ public class TournamentServiceImp implements ITournamentService {
 
 	@Autowired
 	private ITeamRepository teamRepository;
-	
+
 	@Autowired
 	private IClubGiftRepository giftRepository;
+
+	@Autowired
+	private IBackupLinesRepository backUpRepository;
 
 	private List<Player> modifiedPlayers = new ArrayList<>();
 
@@ -214,10 +218,30 @@ public class TournamentServiceImp implements ITournamentService {
 		if (!tournament.isActive()) {
 			throw new ResponseStatusException(HttpStatus.NOT_MODIFIED, "Tournament was already finished");
 		}
-
 		tournament.setActive(false);
 		tournamentRepository.save(tournament);
 		endTournament();
+
+		giftRepository.deleteAll();
+
+		for (Player player : playerRepository.findAll()) {
+			player.setAverage(0);
+			player.setLastSummation(0);
+			player.setLineAverage(0D);
+			player.setLinesQuantity(0);
+			player.setMaxLine(0);
+			player.setMaxSerie(0);
+			playerRepository.save(player);
+		}
+
+		backUpRepository.deleteAll();
+
+		for (Team team : teamRepository.findAll()) {
+			team.setPines(0);
+			team.setPoints(0);
+			teamRepository.save(team);
+		}
+
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(tournament);
 	}
@@ -698,7 +722,7 @@ public class TournamentServiceImp implements ITournamentService {
 				ReportInformationHDCP dto = new ReportInformationHDCP();
 				Optional<Player> playerOptional = playerRepository.findById(gift.getPlayerId());
 				dto.setName(playerOptional.get().getName() + " " + playerOptional.get().getLastName());
-				dto.setLinesQuantity((int)gift.getTotalGift());
+				dto.setLinesQuantity((int) gift.getTotalGift());
 				dto.setTittleCategory("Premios Individuales Clubes");
 				information.add(dto);
 			}
@@ -786,14 +810,13 @@ public class TournamentServiceImp implements ITournamentService {
 	@Override
 	public String exportReportClubGift(String reportFormat) throws JRException, IOException {
 		Tournament tournament = tournamentRepository.findByActive(true);
-		
+
 		Collection<ReportHDCPDTO> collectionGiftClub = getGiftReport();
-		
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("dedicateTo", tournament != null ? tournament.getDedicateTo() : "");
 		parameters.put("tournamentName", tournament != null ? tournament.getTournamentName() : "");
-		
+
 		InputStream jrxmlInputStreamGiftClub = new ClassPathResource("GiftClub.jrxml").getInputStream();
 		JasperDesign designGiftClub = JRXmlLoader.load(jrxmlInputStreamGiftClub);
 		JasperReport jasperReportGiftClub = JasperCompileManager.compileReport(designGiftClub);
@@ -807,7 +830,7 @@ public class TournamentServiceImp implements ITournamentService {
 		if (reportFormat.equalsIgnoreCase("pdf")) {
 			JasperExportManager.exportReportToPdfFile(jasperPrintGiftClub, "clubes.pdf");
 		}
-		
+
 		return "Report generated successfully";
 	}
 

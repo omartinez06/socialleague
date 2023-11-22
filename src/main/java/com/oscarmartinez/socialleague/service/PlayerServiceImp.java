@@ -235,12 +235,15 @@ public class PlayerServiceImp implements IPlayerService {
 
 			if (club1 > 0 && serie >= club1) {
 				updateClubGift(club, 1, activeTournament.getFirstClubQuota());
+				club.setUpdatedDate(LocalDateTime.now());
 				clubGiftRepository.save(club);
 			} else if (club2 > 0 && serie >= club2) {
 				updateClubGift(club, 2, activeTournament.getSecondClubQuota());
+				club.setUpdatedDate(LocalDateTime.now());
 				clubGiftRepository.save(club);
 			} else if (club3 > 0 && serie >= club3 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
 				updateClubGift(club, 3, activeTournament.getThirdClubQuota());
+				club.setUpdatedDate(LocalDateTime.now());
 				clubGiftRepository.save(club);
 			}
 		}
