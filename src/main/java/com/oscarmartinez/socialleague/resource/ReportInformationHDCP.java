@@ -5,17 +5,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ReportInformation {
+public class ReportInformationHDCP {
 	
-	private int position;
 	private String name;
-	private int linesQuantity;
-	private double linesAverage;
-	private int pines;
-	private double average;
 	private String tittleCategory;
-	private String team;
-	private int points;
+	private int linesQuantity;
+	private double average;
 	private int hdcp;
 
 }

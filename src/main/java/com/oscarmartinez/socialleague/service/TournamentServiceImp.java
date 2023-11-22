@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -41,18 +42,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.oscarmartinez.socialleague.entity.Category;
+import com.oscarmartinez.socialleague.entity.ClubGift;
 import com.oscarmartinez.socialleague.entity.Player;
 import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.entity.Tournament;
 import com.oscarmartinez.socialleague.entity.enums.CategoryLevel;
 import com.oscarmartinez.socialleague.entity.enums.CategoryType;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
+import com.oscarmartinez.socialleague.repository.IClubGiftRepository;
 import com.oscarmartinez.socialleague.repository.IPlayerRepository;
 import com.oscarmartinez.socialleague.repository.ITeamRepository;
 import com.oscarmartinez.socialleague.repository.ITournamentRepository;
 import com.oscarmartinez.socialleague.resource.Constants;
 import com.oscarmartinez.socialleague.resource.ReportDTO;
+import com.oscarmartinez.socialleague.resource.ReportHDCPDTO;
 import com.oscarmartinez.socialleague.resource.ReportInformation;
+import com.oscarmartinez.socialleague.resource.ReportInformationHDCP;
 import com.oscarmartinez.socialleague.resource.TournamentDTO;
 
 import net.sf.jasperreports.engine.JRException;
@@ -69,15 +74,15 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
 public class TournamentServiceImp implements ITournamentService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TournamentServiceImp.class);
-	
+
 	@Value("${mail.sender.username}")
-    private String senderUsername;
-	
+	private String senderUsername;
+
 	@Value("${mail.sender.password}")
-    private String senderPassword;
-	
+	private String senderPassword;
+
 	@Value("${mail.sender.body}")
-    private String mailBody;
+	private String mailBody;
 
 	@Autowired
 	private ITournamentRepository tournamentRepository;
@@ -90,6 +95,9 @@ public class TournamentServiceImp implements ITournamentService {
 
 	@Autowired
 	private ITeamRepository teamRepository;
+	
+	@Autowired
+	private IClubGiftRepository giftRepository;
 
 	private List<Player> modifiedPlayers = new ArrayList<>();
 
@@ -113,6 +121,7 @@ public class TournamentServiceImp implements ITournamentService {
 		tournament.setAverageForHDCP(newTournament.getAverageForHDCP());
 		tournament.setNumberDays(newTournament.getNumberDays());
 		tournament.setActive(true);
+		tournament.setDay(0);
 
 		tournamentRepository.save(tournament);
 
@@ -334,6 +343,22 @@ public class TournamentServiceImp implements ITournamentService {
 		logger.debug("{} - End", methodName);
 	}
 
+	public void resetAllPlayers() {
+		final String methodName = "resetAllPlayers()";
+		logger.debug("{} - Begin", methodName);
+
+		List<Player> players = playerRepository.findAll();
+
+		for (Player player : players) {
+			player.setLastLines(null);
+			player.setLastSummation(0);
+			player.setLineAverage(0D);
+			player.setLinesQuantity(0);
+			player.setMaxLine(0);
+			player.setMaxSerie(0);
+		}
+	}
+
 	@Override
 	public String exportReport(String reportFormat) throws JRException, IOException {
 		Tournament tournament = tournamentRepository.findByActive(true);
@@ -343,6 +368,7 @@ public class TournamentServiceImp implements ITournamentService {
 		Collection<ReportDTO> collectionSeries = getSerieReport();
 		Collection<ReportDTO> collectionTeamPoints = getTeamPointsReport();
 		Collection<ReportDTO> collectionTeamPines = getTeamPinesReport();
+		Collection<ReportHDCPDTO> collectionHdcp = getHDCPReport();
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("dedicateTo", tournament != null ? tournament.getDedicateTo() : "");
@@ -378,12 +404,19 @@ public class TournamentServiceImp implements ITournamentService {
 		JasperPrint jasperPrintTeamPines = JasperFillManager.fillReport(jasperReportTeamPines, parameters,
 				new JRBeanCollectionDataSource(collectionTeamPines));
 
+		InputStream jrxmlInputStreamHdcp = new ClassPathResource("Hdcp.jrxml").getInputStream();
+		JasperDesign designHdcp = JRXmlLoader.load(jrxmlInputStreamHdcp);
+		JasperReport jasperReportHdcp = JasperCompileManager.compileReport(designHdcp);
+		JasperPrint jasperPrintHdcp = JasperFillManager.fillReport(jasperReportHdcp, parameters,
+				new JRBeanCollectionDataSource(collectionHdcp));
+
 		if (reportFormat.equalsIgnoreCase("html")) {
 			JasperExportManager.exportReportToHtmlFile(jasperPrintAverage, "promedios.html");
 			JasperExportManager.exportReportToHtmlFile(jasperPrintPines, "linea_alta.html");
 			JasperExportManager.exportReportToHtmlFile(jasperPrintSeries, "serie_alta.html");
 			JasperExportManager.exportReportToHtmlFile(jasperPrintTeamPoints, "puntos_equipos.html");
 			JasperExportManager.exportReportToHtmlFile(jasperPrintTeamPines, "pines_equipos.html");
+			JasperExportManager.exportReportToHtmlFile(jasperPrintHdcp, "hdcp.html");
 		}
 
 		if (reportFormat.equalsIgnoreCase("pdf")) {
@@ -392,6 +425,7 @@ public class TournamentServiceImp implements ITournamentService {
 			JasperExportManager.exportReportToPdfFile(jasperPrintSeries, "serie_alta.pdf");
 			JasperExportManager.exportReportToPdfFile(jasperPrintTeamPoints, "puntos_equipos.pdf");
 			JasperExportManager.exportReportToPdfFile(jasperPrintTeamPines, "pines_equipos.pdf");
+			JasperExportManager.exportReportToPdfFile(jasperPrintHdcp, "hdcp.pdf");
 		}
 		return "Reports generated successfully";
 	}
@@ -407,7 +441,7 @@ public class TournamentServiceImp implements ITournamentService {
 			List<Player> players = playerRepository.findByCategory(category);
 			if (!players.isEmpty()) {
 				for (Player player : players) {
-					if (player.getLineAverage() < tournament.getLinesAverage())
+					if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
 						continue;
 
 					ReportInformation dto = new ReportInformation();
@@ -441,7 +475,7 @@ public class TournamentServiceImp implements ITournamentService {
 			List<Player> players = playerRepository.findByCategory(category);
 			if (!players.isEmpty()) {
 				for (Player player : players) {
-					if (player.getLineAverage() < tournament.getLinesAverage())
+					if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
 						continue;
 
 					ReportInformation dto = new ReportInformation();
@@ -471,11 +505,14 @@ public class TournamentServiceImp implements ITournamentService {
 		Collection<ReportDTO> collection = new ArrayList<>();
 		List<ReportDTO> reportAverage = new ArrayList<>();
 		for (Category category : categories) {
+			if (CategoryLevel.N.equals(category.getLevel()))
+				continue;
+
 			information = new ArrayList<>();
 			List<Player> players = playerRepository.findByCategory(category);
 			if (!players.isEmpty()) {
 				for (Player player : players) {
-					if (player.getLineAverage() < tournament.getLinesAverage())
+					if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
 						continue;
 
 					ReportInformation dto = new ReportInformation();
@@ -614,75 +651,164 @@ public class TournamentServiceImp implements ITournamentService {
 		return currentArray;
 	}
 
+	// REVISAR ESTE REPORTE AQUI VOY
+	public Collection<ReportHDCPDTO> getHDCPReport() {
+		List<ReportInformationHDCP> information = new ArrayList<>();
+		Collection<ReportHDCPDTO> collection = new ArrayList<>();
+		List<ReportHDCPDTO> reportPlayers = new ArrayList<>();
+
+		List<Team> teams = teamRepository.findAll();
+
+		if (!teams.isEmpty()) {
+			for (Team team : teams) {
+				information = new ArrayList<>();
+				ReportInformationHDCP dto = new ReportInformationHDCP();
+				List<Player> players = playerRepository.findAllByTeam(team);
+				if (!players.isEmpty()) {
+					for (Player player : players) {
+						dto.setName(player.getName() + " " + player.getLastName());
+						dto.setLinesQuantity(player.getLinesQuantity());
+						dto.setAverage(player.getAverage());
+						dto.setHdcp(player.getHandicap());
+						dto.setTittleCategory(team.getName());
+						information.add(dto);
+					}
+				}
+				ReportHDCPDTO hdcp = new ReportHDCPDTO();
+				hdcp.setPlayers(information);
+				hdcp.setCategory(team.getName());
+				reportPlayers.add(hdcp);
+			}
+		}
+
+		collection.addAll(reportPlayers);
+		return collection;
+	}
+
+	public Collection<ReportHDCPDTO> getGiftReport() {
+		List<ReportInformationHDCP> information = new ArrayList<>();
+		Collection<ReportHDCPDTO> collection = new ArrayList<>();
+		List<ReportHDCPDTO> reportPlayers = new ArrayList<>();
+
+		List<ClubGift> gifts = giftRepository.findAll();
+
+		if (!gifts.isEmpty()) {
+			for (ClubGift gift : gifts) {
+				information = new ArrayList<>();
+				ReportInformationHDCP dto = new ReportInformationHDCP();
+				Optional<Player> playerOptional = playerRepository.findById(gift.getPlayerId());
+				dto.setName(playerOptional.get().getName() + " " + playerOptional.get().getLastName());
+				dto.setLinesQuantity((int)gift.getTotalGift());
+				dto.setTittleCategory("Premios Individuales Clubes");
+				information.add(dto);
+			}
+			ReportHDCPDTO hdcp = new ReportHDCPDTO();
+			hdcp.setPlayers(information);
+			hdcp.setCategory("Premios Totales");
+			reportPlayers.add(hdcp);
+		}
+
+		collection.addAll(reportPlayers);
+		return collection;
+	}
+
 	@Override
 	public ResponseEntity<?> sendEmailWithAttachment() throws MessagingException, IOException {
 		List<Player> playersToSendMail = playerRepository.findBySendReportMail(true);
-		
-		String emails = playersToSendMail.stream()
-                .map(Player::getMail)
-                .collect(Collectors.joining(";"));
+
+		String emails = playersToSendMail.stream().map(Player::getMail).collect(Collectors.joining(";"));
 
 		// SMTP Configuration
-        Properties propiedades = new Properties();
-        /*propiedades.put("mail.smtp.host", "smtp.gmail.com");
-        propiedades.put("mail.smtp.port", "587");
-        propiedades.put("mail.smtp.auth", "true");
-        propiedades.put("mail.smtp.starttls.enable", "true");*/
-        
-        propiedades.put("mail.smtp.host", "smtp-mail.outlook.com");
-        propiedades.put("mail.smtp.port", "587");
-        propiedades.put("mail.smtp.auth", "true");
-        propiedades.put("mail.smtp.starttls.enable", "true");
+		Properties propiedades = new Properties();
+		/*
+		 * propiedades.put("mail.smtp.host", "smtp.gmail.com");
+		 * propiedades.put("mail.smtp.port", "587"); propiedades.put("mail.smtp.auth",
+		 * "true"); propiedades.put("mail.smtp.starttls.enable", "true");
+		 */
 
-        // User and password configuration
-        Session session = Session.getInstance(propiedades, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(senderUsername, senderPassword);
-            }
-        });
+		propiedades.put("mail.smtp.host", "smtp-mail.outlook.com");
+		propiedades.put("mail.smtp.port", "587");
+		propiedades.put("mail.smtp.auth", "true");
+		propiedades.put("mail.smtp.starttls.enable", "true");
 
-        try {
-            // Create message
-            Message mensaje = new MimeMessage(session);
-            mensaje.setFrom(new InternetAddress(senderUsername)); // Cambia esto a tu dirección de correo electrónico
-            mensaje.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emails));
-            mensaje.setSubject("Reportes Liga Social " + LocalDateTime.now());
-            //mensaje.setText("Hola te compartimos los reportes de la liga social.");
+		// User and password configuration
+		Session session = Session.getInstance(propiedades, new Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication(senderUsername, senderPassword);
+			}
+		});
 
-            // Create body message
-            Multipart multipart = new MimeMultipart();
+		try {
+			// Create message
+			Message mensaje = new MimeMessage(session);
+			mensaje.setFrom(new InternetAddress(senderUsername)); // Cambia esto a tu dirección de correo electrónico
+			mensaje.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emails));
+			mensaje.setSubject("Reportes Liga Social " + LocalDateTime.now());
+			// mensaje.setText("Hola te compartimos los reportes de la liga social.");
 
-            // Add body message
-            BodyPart cuerpoMensaje = new MimeBodyPart();
-            cuerpoMensaje.setText(mailBody);
-            multipart.addBodyPart(cuerpoMensaje);
-            
-            List<String> archivosAdjuntos = new ArrayList<>();
-            archivosAdjuntos.add("../socialleague/linea_alta.pdf");
-            archivosAdjuntos.add("../socialleague/pines_equipos.pdf");
-            archivosAdjuntos.add("../socialleague/promedios.pdf");
-            archivosAdjuntos.add("../socialleague/puntos_equipos.pdf");
+			// Create body message
+			Multipart multipart = new MimeMultipart();
 
-            // Attach files
-            for (String archivoAdjunto : archivosAdjuntos) {
-                BodyPart adjunto = new MimeBodyPart();
-                DataSource fuente = new FileDataSource(archivoAdjunto);
-                adjunto.setDataHandler(new DataHandler(fuente));
-                adjunto.setFileName(fuente.getName());
-                multipart.addBodyPart(adjunto);
-            }
+			// Add body message
+			BodyPart cuerpoMensaje = new MimeBodyPart();
+			cuerpoMensaje.setText(mailBody);
+			multipart.addBodyPart(cuerpoMensaje);
 
-            // Set content message
-            mensaje.setContent(multipart);
+			List<String> archivosAdjuntos = new ArrayList<>();
+			archivosAdjuntos.add("../socialleague/linea_alta.pdf");
+			archivosAdjuntos.add("../socialleague/pines_equipos.pdf");
+			archivosAdjuntos.add("../socialleague/promedios.pdf");
+			archivosAdjuntos.add("../socialleague/puntos_equipos.pdf");
+			archivosAdjuntos.add("../socialleague/pines_equipos.pdf");
 
-            // Send mail
-            Transport.send(mensaje);
+			// Attach files
+			for (String archivoAdjunto : archivosAdjuntos) {
+				BodyPart adjunto = new MimeBodyPart();
+				DataSource fuente = new FileDataSource(archivoAdjunto);
+				adjunto.setDataHandler(new DataHandler(fuente));
+				adjunto.setFileName(fuente.getName());
+				multipart.addBodyPart(adjunto);
+			}
 
-            return new ResponseEntity<>(HttpStatus.OK);
+			// Set content message
+			mensaje.setContent(multipart);
 
-        } catch (MessagingException e) {
-            throw e;
-        }
+			// Send mail
+			Transport.send(mensaje);
+
+			return new ResponseEntity<>(HttpStatus.OK);
+
+		} catch (MessagingException e) {
+			throw e;
+		}
+	}
+
+	@Override
+	public String exportReportClubGift(String reportFormat) throws JRException, IOException {
+		Tournament tournament = tournamentRepository.findByActive(true);
+		
+		Collection<ReportHDCPDTO> collectionGiftClub = getGiftReport();
+		
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("dedicateTo", tournament != null ? tournament.getDedicateTo() : "");
+		parameters.put("tournamentName", tournament != null ? tournament.getTournamentName() : "");
+		
+		InputStream jrxmlInputStreamGiftClub = new ClassPathResource("GiftClub.jrxml").getInputStream();
+		JasperDesign designGiftClub = JRXmlLoader.load(jrxmlInputStreamGiftClub);
+		JasperReport jasperReportGiftClub = JasperCompileManager.compileReport(designGiftClub);
+		JasperPrint jasperPrintGiftClub = JasperFillManager.fillReport(jasperReportGiftClub, parameters,
+				new JRBeanCollectionDataSource(collectionGiftClub));
+
+		if (reportFormat.equalsIgnoreCase("html")) {
+			JasperExportManager.exportReportToHtmlFile(jasperPrintGiftClub, "clubes.html");
+		}
+
+		if (reportFormat.equalsIgnoreCase("pdf")) {
+			JasperExportManager.exportReportToPdfFile(jasperPrintGiftClub, "clubes.pdf");
+		}
+		
+		return "Report generated successfully";
 	}
 
 }

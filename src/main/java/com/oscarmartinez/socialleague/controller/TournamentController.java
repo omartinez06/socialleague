@@ -63,4 +63,9 @@ public class TournamentController {
 		return tournamentService.sendEmailWithAttachment();
 	}
 
+	@GetMapping("report/club/{format}")
+	public String generateClubGiftReport(@PathVariable String format) throws JRException, IOException {
+		return tournamentService.exportReportClubGift(format);
+	}
+
 }

@@ -171,7 +171,7 @@
 								<textField>
 									<reportElement x="0" y="0" width="85" height="30" uuid="e6e43261-fbe9-4ffd-b1c5-7bb0aae9ff00"/>
 									<textElement textAlignment="Center" verticalAlignment="Middle"/>
-									<textFieldExpression><![CDATA[$F{pines}]]></textFieldExpression>
+									<textFieldExpression><![CDATA[new java.text.DecimalFormat("#,##0").format($F{pines})]]></textFieldExpression>
 								</textField>
 							</jr:detailCell>
 						</jr:column>

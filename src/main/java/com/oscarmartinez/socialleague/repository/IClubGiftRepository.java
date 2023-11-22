@@ -8,4 +8,6 @@ import com.oscarmartinez.socialleague.entity.ClubGift;
 @Repository("clubGiftRepository")
 public interface IClubGiftRepository extends JpaRepository<ClubGift, Long> {
 
+	ClubGift findByPlayerId(long playerId);
+
 }

@@ -38,5 +38,6 @@ public class Tournament {
 	private double averageForHDCP;
 	private int minHDCP;
 	private int maxHDCP;
+	private int day;
 
 }

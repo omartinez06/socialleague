@@ -25,5 +25,7 @@ public interface ITournamentService {
 	
 	String exportReport(String reportFormat) throws JRException, IOException;
 	
+	String exportReportClubGift(String reportFormat) throws JRException, IOException;
+	
 	ResponseEntity<?> sendEmailWithAttachment() throws MessagingException, IOException;
 }

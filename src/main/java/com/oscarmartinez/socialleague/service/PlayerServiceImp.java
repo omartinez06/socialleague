@@ -21,6 +21,7 @@ import com.oscarmartinez.socialleague.entity.ClubGift;
 import com.oscarmartinez.socialleague.entity.Player;
 import com.oscarmartinez.socialleague.entity.Team;
 import com.oscarmartinez.socialleague.entity.Tournament;
+import com.oscarmartinez.socialleague.entity.enums.CategoryLevel;
 import com.oscarmartinez.socialleague.entity.enums.CategoryType;
 import com.oscarmartinez.socialleague.repository.IBackupLinesRepository;
 import com.oscarmartinez.socialleague.repository.ICategoryRepository;
@@ -225,31 +226,22 @@ public class PlayerServiceImp implements IPlayerService {
 			int club2 = activeTournament.getSecondClubValue();
 			int club3 = activeTournament.getThirdClubValue();
 
-			if (player.getClubGift() == null) {
-				player.setClubGift(new ClubGift());
+			ClubGift club = clubGiftRepository.findByPlayerId(player.getId());
+
+			if (club == null) {
+				club = new ClubGift();
+				club.setPlayerId(player.getId());
 			}
 
 			if (club1 > 0 && serie >= club1) {
-				player.getClubGift().setUpdatedDate(LocalDateTime.now());
-				int currentVal = player.getClubGift().getClub3();
-				double currentGift = player.getClubGift().getTotalGift();
-				player.getClubGift().setClub1(currentVal + 1);
-				player.getClubGift().setTotalGift(currentGift + activeTournament.getFirstClubQuota());
-				clubGiftRepository.save(player.getClubGift());
+				updateClubGift(club, 1, activeTournament.getFirstClubQuota());
+				clubGiftRepository.save(club);
 			} else if (club2 > 0 && serie >= club2) {
-				player.getClubGift().setUpdatedDate(LocalDateTime.now());
-				int currentVal = player.getClubGift().getClub2();
-				double currentGift = player.getClubGift().getTotalGift();
-				player.getClubGift().setClub2(currentVal + 1);
-				player.getClubGift().setTotalGift(currentGift + activeTournament.getSecondClubQuota());
-				clubGiftRepository.save(player.getClubGift());
+				updateClubGift(club, 2, activeTournament.getSecondClubQuota());
+				clubGiftRepository.save(club);
 			} else if (club3 > 0 && serie >= club3 && CategoryType.FEMALE.equals(player.getCategory().getType())) {
-				player.getClubGift().setUpdatedDate(LocalDateTime.now());
-				int currentVal = player.getClubGift().getClub1();
-				double currentGift = player.getClubGift().getTotalGift();
-				player.getClubGift().setClub3(currentVal + 1);
-				player.getClubGift().setTotalGift(currentGift + activeTournament.getThirdClubQuota());
-				clubGiftRepository.save(player.getClubGift());
+				updateClubGift(club, 3, activeTournament.getThirdClubQuota());
+				clubGiftRepository.save(club);
 			}
 		}
 		/*--------------------*/
@@ -261,10 +253,57 @@ public class PlayerServiceImp implements IPlayerService {
 
 		player.setLineAverage((player.getLinesQuantity() * 100) / (activeTournament.getNumberDays() * 3));
 
+		// If is new player set category
+		if (player.getLinesQuantity() >= 9 && player.getCategory().getLevel().equals(CategoryLevel.N)) {
+			List<Category> categories = categoryRepository.findAll();
+			for (Category category : categories) {
+				if (player.getAverage() >= category.getMinAverage()
+						&& player.getAverage() <= category.getMaxAverage()) {
+					player.setCategory(category);
+				}
+			}
+		}
+
 		playerRepository.save(player);
 
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);
+	}
+
+	private void updateClubGift(ClubGift club, int clubNumber, double quota) {
+		int currentVal;
+		switch (clubNumber) {
+		case 1:
+			currentVal = club.getClub1();
+			break;
+		case 2:
+			currentVal = club.getClub2();
+			break;
+		case 3:
+			currentVal = club.getClub3();
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid club number");
+		}
+
+		double currentGift = club.getTotalGift();
+
+		switch (clubNumber) {
+		case 1:
+			club.setClub1(currentVal + 1);
+			club.setTotalGift(currentGift + quota);
+			break;
+		case 2:
+			club.setClub2(currentVal + 1);
+			club.setTotalGift(currentGift + quota);
+			break;
+		case 3:
+			club.setClub3(currentVal + 1);
+			club.setTotalGift(currentGift + quota);
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid club number");
+		}
 	}
 
 	public boolean isExist(String name, String lastName) {
@@ -289,19 +328,24 @@ public class PlayerServiceImp implements IPlayerService {
 		Tournament activeTournament = tournamentRepository.findByActive(true);
 
 		for (Player player : players) {
-			double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
-					* activeTournament.getAverageForHDCP();
-			int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
 
-			if (handicap < activeTournament.getMinHDCP()) {
-				player.setHandicap(0);
-			} else if (handicap > activeTournament.getMaxHDCP()) {
-				player.setHandicap(activeTournament.getMaxHDCP());
+			if (player.getLinesQuantity() < 9) {
+				player.setAverage(player.getLastSummation() / player.getLinesQuantity());
 			} else {
-				player.setHandicap(handicap);
-			}
+				double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
+						* activeTournament.getAverageForHDCP();
+				int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
 
-			player.setAverage(player.getLastSummation() / player.getLinesQuantity());
+				if (handicap < activeTournament.getMinHDCP()) {
+					player.setHandicap(0);
+				} else if (handicap > activeTournament.getMaxHDCP()) {
+					player.setHandicap(activeTournament.getMaxHDCP());
+				} else {
+					player.setHandicap(handicap);
+				}
+
+				player.setAverage(player.getLastSummation() / player.getLinesQuantity());
+			}
 
 			playerRepository.save(player);
 		}
@@ -317,6 +361,10 @@ public class PlayerServiceImp implements IPlayerService {
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
+
+		/*
+		 * if(player.getLinesQuantity() < 9) throw new Exception("INSUFICIENT_LINES");
+		 */
 
 		Tournament activeTournament = tournamentRepository.findByActive(true);
 		double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
@@ -380,7 +428,7 @@ public class PlayerServiceImp implements IPlayerService {
 		if (backUp.getThirdLine() > 0) {
 			lastPlayedLinesQuantity++;
 		}
-		
+
 		backUp.setFirstLine(0);
 		backUp.setSecondLine(0);
 		backUp.setThirdLine(0);
@@ -404,19 +452,19 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setAverage(average);
 
 		playerRepository.save(player);
-		
-		for(int x = 0 ; x < lines.size() ; x++) {
-			if(x == 0) {
+
+		for (int x = 0; x < lines.size(); x++) {
+			if (x == 0) {
 				backUp.setFirstLine(lines.get(x));
 			}
-			if(x == 1) {
+			if (x == 1) {
 				backUp.setSecondLine(lines.get(x));
 			}
-			if(x == 2) {
+			if (x == 2) {
 				backUp.setThirdLine(lines.get(x));
 			}
 		}
-		
+
 		backupRepository.save(backUp);
 
 		logger.debug("{} - End", methodName);

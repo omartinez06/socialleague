@@ -2,13 +2,10 @@ package com.oscarmartinez.socialleague.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,9 +29,6 @@ public class ClubGift {
 	private int club3;
 	private double totalGift;
 	private LocalDateTime updatedDate;
-	
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "player_id", referencedColumnName = "id")
-	private Player player;
+	private long playerId;
 
 }
