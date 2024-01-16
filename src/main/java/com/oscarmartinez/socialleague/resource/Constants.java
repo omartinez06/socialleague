@@ -16,5 +16,7 @@ public class Constants {
 	public static final String TOURNAMENT_POINTS_FOR_HDCP = "pointsForHDCP";
 	public static final String TOURNAMENT_AVERAGE_FOR_HDCP = "averageForHDCP";
 	public static final String TOURNAMENT_NUMBER_DAYS = "numberDays";
+	public static final String TOURNAMENT_MIN_HDCP = "minHDCP";
+	public static final String TOURNAMENT_MAX_HDCP = "maxHDCP";
 
 }

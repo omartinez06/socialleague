@@ -1,6 +1,6 @@
 package com.oscarmartinez.socialleague.service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public class CategoryServiceImp implements ICategoryService {
 		Category newCategory = new Category();
 		newCategory.setLevel(CategoryLevel.valueOf(category.getLevel()));
 		newCategory.setType(CategoryType.valueOf(category.getType()));
-		newCategory.setAddedDate(new Date());
+		newCategory.setAddedDate(LocalDateTime.now());
 		newCategory.setAddedBy(jwtProvider.getUserName());
 		newCategory.setMinAverage(category.getMinAverage());
 		newCategory.setMaxAverage(category.getMaxAverage());
@@ -60,7 +60,7 @@ public class CategoryServiceImp implements ICategoryService {
 		Category category = categoryRepository.findById(id)
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + id));
 		category.setUpdatedBy(jwtProvider.getUserName());
-		category.setUpdatedDate(new Date());
+		category.setUpdatedDate(LocalDateTime.now());
 		category.setLevel(CategoryLevel.valueOf(categoryDetail.getLevel()));
 		category.setType(CategoryType.valueOf(categoryDetail.getType()));
 		category.setMinAverage(categoryDetail.getMinAverage());

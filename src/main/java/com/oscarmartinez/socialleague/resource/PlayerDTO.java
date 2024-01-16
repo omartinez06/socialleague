@@ -7,7 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PlayerDTO {
-	private String birth;
 	private String name;
 	private String lastName;
 	private int phone;
@@ -21,6 +20,7 @@ public class PlayerDTO {
 	private int maxSerie;
 	private String mail;
 	private double lineAverage;
-	private boolean sendMail;
+	private boolean sendReportMail;
+	private String birth;
 
 }

@@ -1,7 +1,8 @@
 package com.oscarmartinez.socialleague.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -26,33 +27,67 @@ import lombok.Setter;
 public class Player {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-	private Date birth;
+
+	@Column(name = "name")
 	private String name;
+
+	@Column(name = "last_name")
 	private String lastName;
+
+	@Column(name = "phone")
 	private int phone;
+
+	@Column(name = "handicap")
 	private int handicap;
+
+	@Column(name = "last_summation")
 	private long lastSummation;
+
+	@Column(name = "lines_quantity")
 	private int linesQuantity;
+
+	@Column(name = "average")
 	private double average;
+
+	@Column(name = "max_line")
 	private int maxLine;
-	private Date addedDate;
+
+	@Column(name = "added_date")
+	private LocalDateTime addedDate;
+
+	@Column(name = "added_by")
 	private String addedBy;
-	private Date updatedDate;
+
+	@Column(name = "updated_date")
+	private LocalDateTime updatedDate;
+
+	@Column(name = "updated_by")
 	private String updatedBy;
+
+	@Column(name = "max_serie")
 	private int maxSerie;
+
+	@Column(name = "mail")
 	private String mail;
+
+	@Column(name = "line_average")
 	private double lineAverage;
+
+	@Column(name = "send_report_mail")
 	private boolean sendReportMail;
-	
+
+	@Column(name = "birth")
+	private LocalDateTime birth;
+
 	@JsonIgnore
 	@ManyToOne
 	private Team team;
-	
+
 	@ManyToOne
 	private Category category;
-	
+
 	@OneToOne(mappedBy = "player")
 	private BackupLines lastLines;
 

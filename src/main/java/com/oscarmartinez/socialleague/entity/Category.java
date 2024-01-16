@@ -1,7 +1,8 @@
 package com.oscarmartinez.socialleague.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -27,7 +28,7 @@ import lombok.Setter;
 public class Category {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
 	@Enumerated(EnumType.STRING)
@@ -35,12 +36,23 @@ public class Category {
 
 	@Enumerated(EnumType.STRING)
 	private CategoryLevel level;
-	
-	private Date addedDate;
+
+	@Column(name = "added_date")
+	private LocalDateTime addedDate;
+
+	@Column(name = "added_by")
 	private String addedBy;
-	private Date updatedDate;
+
+	@Column(name = "updated_date")
+	private LocalDateTime updatedDate;
+
+	@Column(name = "updated_by")
 	private String updatedBy;
+
+	@Column(name = "min_average")
 	private double minAverage;
+
+	@Column(name = "max_average")
 	private double maxAverage;
 
 }

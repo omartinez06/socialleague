@@ -4,7 +4,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -59,7 +58,7 @@ public class TeamServiceImp implements ITeamService {
 		newTeam.setName(team.getName());
 		newTeam.setPoints(team.getPoints());
 		newTeam.setPines(team.getPines());
-		newTeam.setAddedDate(new Date());
+		newTeam.setAddedDate(LocalDateTime.now());
 		newTeam.setAddedBy(jwtProvider.getUserName());
 		Category category = categoryRepository.findById(team.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + team.getCategory()));
@@ -85,7 +84,7 @@ public class TeamServiceImp implements ITeamService {
 		logger.debug("{} - Begin", methodName);
 		Team team = teamRepository.findById(id).orElseThrow(() -> new Exception("Team does not exist with id: " + id));
 		team.setUpdatedBy(jwtProvider.getUserName());
-		team.setUpdatedDate(new Date());
+		team.setUpdatedDate(LocalDateTime.now());
 		Category category = categoryRepository.findById(teamDetail.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + team.getCategory()));
 		team.setCategory(category);

@@ -21,11 +21,17 @@ public class JwtProvider {
 	private int jwtExpiration;
 
 	public String generateJwtToken(Authentication authentication) {
-
 		UserImp user = (UserImp) authentication.getPrincipal();
-		return Jwts.builder().setSubject(user.getUsername()).setIssuedAt(new Date())
-				.setExpiration(new Date((new Date()).getTime() + jwtExpiration * 60000))
-				.signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
+
+	    Date now = new Date();
+	    Date expiryDate = new Date(now.getTime() + jwtExpiration * 60 * 1000); // jwtExpiration en minutos
+	    
+	    return Jwts.builder()
+	            .setSubject(user.getUsername())
+	            .setIssuedAt(now)
+	            .setExpiration(expiryDate)
+	            .signWith(SignatureAlgorithm.HS512, jwtSecret)
+	            .compact();
 	}
 
 	public boolean validateJwtToken(String authToken) {

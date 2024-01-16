@@ -2,10 +2,11 @@ package com.oscarmartinez.socialleague.service;
 
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.oscarmartinez.socialleague.entity.BackupLines;
 import com.oscarmartinez.socialleague.entity.Category;
@@ -65,17 +67,17 @@ public class PlayerServiceImp implements IPlayerService {
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<HttpStatus> addPlayer(PlayerDTO player) throws Exception {
 		final String methodName = "addPlayer()";
 		logger.debug("{} - Begin", methodName);
 		Player newPlayer = new Player();
 		newPlayer.setAddedBy(jwtProvider.getUserName());
-		newPlayer.setAddedDate(new Date());
+		newPlayer.setAddedDate(LocalDateTime.now());
 		newPlayer.setAverage(player.getAverage());
 		Category category = categoryRepository.findById(player.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + player.getCategory()));
 		newPlayer.setCategory(category);
-		newPlayer.setBirth(new SimpleDateFormat("dd/MM/yyyy").parse(player.getBirth()));
 		newPlayer.setHandicap(player.getHandicap());
 		newPlayer.setLastName(player.getLastName());
 		newPlayer.setName(player.getName());
@@ -86,7 +88,9 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setMaxSerie(player.getMaxSerie());
 		newPlayer.setMail(player.getMail());
 		newPlayer.setLineAverage(player.getLineAverage());
-		newPlayer.setSendReportMail(player.isSendMail());
+		newPlayer.setSendReportMail(player.isSendReportMail());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		newPlayer.setBirth(LocalDateTime.parse(player.getBirth(), formatter));
 		Team team = teamRepository.findById(player.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
 
@@ -107,12 +111,11 @@ public class PlayerServiceImp implements IPlayerService {
 		Player player = playerRepository.findById(id)
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
 		player.setUpdatedBy(jwtProvider.getUserName());
-		player.setUpdatedDate(new Date());
+		player.setUpdatedDate(LocalDateTime.now());
 		player.setAverage(playerDetail.getAverage());
 		Category category = categoryRepository.findById(playerDetail.getCategory())
 				.orElseThrow(() -> new Exception("Category does not exist with id: " + playerDetail.getCategory()));
 		player.setCategory(category);
-		player.setBirth(new SimpleDateFormat("dd/MM/yyyy").parse(playerDetail.getBirth()));
 		player.setLastName(playerDetail.getLastName());
 		player.setName(playerDetail.getName());
 		player.setPhone(playerDetail.getPhone());
@@ -123,7 +126,10 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setMaxSerie(playerDetail.getMaxSerie());
 		player.setMail(playerDetail.getMail());
 		player.setLineAverage(playerDetail.getLineAverage());
-		player.setSendReportMail(playerDetail.isSendMail());
+		player.setSendReportMail(playerDetail.isSendReportMail());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		player.setBirth(LocalDateTime.parse(playerDetail.getBirth(), formatter));
+
 
 		Team team = teamRepository.findById(playerDetail.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
@@ -334,23 +340,19 @@ public class PlayerServiceImp implements IPlayerService {
 
 		for (Player player : players) {
 
-			if (player.getLinesQuantity() < 9) {
-				player.setAverage(player.getLastSummation() / player.getLinesQuantity());
+			double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
+					* activeTournament.getAverageForHDCP();
+			int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
+
+			if (handicap < activeTournament.getMinHDCP()) {
+				player.setHandicap(0);
+			} else if (handicap > activeTournament.getMaxHDCP()) {
+				player.setHandicap(activeTournament.getMaxHDCP());
 			} else {
-				double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
-						* activeTournament.getAverageForHDCP();
-				int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
-
-				if (handicap < activeTournament.getMinHDCP()) {
-					player.setHandicap(0);
-				} else if (handicap > activeTournament.getMaxHDCP()) {
-					player.setHandicap(activeTournament.getMaxHDCP());
-				} else {
-					player.setHandicap(handicap);
-				}
-
-				player.setAverage(player.getLastSummation() / player.getLinesQuantity());
+				player.setHandicap(handicap);
 			}
+
+			player.setAverage(player.getLastSummation() / player.getLinesQuantity());
 
 			playerRepository.save(player);
 		}

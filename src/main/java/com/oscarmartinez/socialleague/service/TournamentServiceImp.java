@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +125,8 @@ public class TournamentServiceImp implements ITournamentService {
 		tournament.setNumberDays(newTournament.getNumberDays());
 		tournament.setActive(true);
 		tournament.setDay(0);
+		tournament.setMinHDCP(newTournament.getMinHDCP());
+		tournament.setMaxHDCP(newTournament.getMaxHDCP());
 
 		tournamentRepository.save(tournament);
 
@@ -140,7 +141,7 @@ public class TournamentServiceImp implements ITournamentService {
 		Tournament tournament = tournamentRepository.findByActive(true);
 
 		if (tournament == null)
-			throw new Exception("Doesnt exist active tournament.");
+			return ResponseEntity.ok(new Tournament());
 
 		return ResponseEntity.ok(tournament);
 	}
@@ -197,6 +198,12 @@ public class TournamentServiceImp implements ITournamentService {
 				break;
 			case Constants.TOURNAMENT_NUMBER_DAYS:
 				currentTournament.setNumberDays((int) value);
+				break;
+			case Constants.TOURNAMENT_MIN_HDCP:
+				currentTournament.setMinHDCP((int) value);
+				break;
+			case Constants.TOURNAMENT_MAX_HDCP:
+				currentTournament.setMaxHDCP((int) value);
 				break;
 			default:
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Fields");
@@ -299,11 +306,11 @@ public class TournamentServiceImp implements ITournamentService {
 
 				if (player.getAverage() >= category.getMinAverage()
 						&& player.getAverage() <= category.getMaxAverage()) {
-					logger.debug("{} - player {} goes to category {}", methodName, player.getName(),
-							category.getLevel());
+					logger.debug("{} - player {} goes to category {}", methodName,
+							player.getName() + " " + player.getLastName(), category.getLevel());
 					player.setCategory(category);
 					player.setUpdatedBy("SYSTEM");
-					player.setUpdatedDate(new Date());
+					player.setUpdatedDate(LocalDateTime.now());
 					playerRepository.save(player);
 					modifiedPlayers.add(player);
 				}
@@ -686,10 +693,10 @@ public class TournamentServiceImp implements ITournamentService {
 		if (!teams.isEmpty()) {
 			for (Team team : teams) {
 				information = new ArrayList<>();
-				ReportInformationHDCP dto = new ReportInformationHDCP();
 				List<Player> players = playerRepository.findAllByTeam(team);
 				if (!players.isEmpty()) {
 					for (Player player : players) {
+						ReportInformationHDCP dto = new ReportInformationHDCP();
 						dto.setName(player.getName() + " " + player.getLastName());
 						dto.setLinesQuantity(player.getLinesQuantity());
 						dto.setAverage(player.getAverage());
