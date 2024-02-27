@@ -1,5 +1,6 @@
 package com.oscarmartinez.socialleague.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -79,7 +80,7 @@ public class Player {
 	private boolean sendReportMail;
 
 	@Column(name = "birth")
-	private LocalDateTime birth;
+	private LocalDate birth;
 
 	@JsonIgnore
 	@ManyToOne

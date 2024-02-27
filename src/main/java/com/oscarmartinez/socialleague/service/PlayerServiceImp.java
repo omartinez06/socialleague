@@ -1,5 +1,6 @@
 package com.oscarmartinez.socialleague.service;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -90,7 +91,7 @@ public class PlayerServiceImp implements IPlayerService {
 		newPlayer.setLineAverage(player.getLineAverage());
 		newPlayer.setSendReportMail(player.isSendReportMail());
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		newPlayer.setBirth(LocalDateTime.parse(player.getBirth(), formatter));
+		newPlayer.setBirth(LocalDate.parse(player.getBirth(), formatter));
 		Team team = teamRepository.findById(player.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
 
@@ -128,8 +129,7 @@ public class PlayerServiceImp implements IPlayerService {
 		player.setLineAverage(playerDetail.getLineAverage());
 		player.setSendReportMail(playerDetail.isSendReportMail());
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		player.setBirth(LocalDateTime.parse(playerDetail.getBirth(), formatter));
-
+		player.setBirth(LocalDate.parse(playerDetail.getBirth(), formatter));
 
 		Team team = teamRepository.findById(playerDetail.getTeam())
 				.orElseThrow(() -> new Exception("Team does not exist with id: " + player.getTeam()));
@@ -222,8 +222,9 @@ public class PlayerServiceImp implements IPlayerService {
 			player.setMaxSerie(linesSummation);
 		}
 
-		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
-		double average = Math.round(tempAverage * 100) / 100;
+		double tempAverage = (double) player.getLastSummation() / player.getLinesQuantity();
+		String formatAverage = String.format("%.2f", tempAverage);
+		double average = Double.parseDouble(formatAverage);
 		player.setAverage(average);
 
 		/* caculate gift serie */
@@ -340,19 +341,26 @@ public class PlayerServiceImp implements IPlayerService {
 
 		for (Player player : players) {
 
-			double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
-					* activeTournament.getAverageForHDCP();
-			int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
+			if (player.getLinesQuantity() >= 3) {
+				double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
+						* activeTournament.getAverageForHDCP();
+				int handicap = handicapDouble < 0 ? 0 : (int) (handicapDouble + 0.5);
 
-			if (handicap < activeTournament.getMinHDCP()) {
-				player.setHandicap(0);
-			} else if (handicap > activeTournament.getMaxHDCP()) {
-				player.setHandicap(activeTournament.getMaxHDCP());
-			} else {
-				player.setHandicap(handicap);
+				if (handicap < activeTournament.getMinHDCP()) {
+					player.setHandicap(0);
+				} else if (handicap > activeTournament.getMaxHDCP()) {
+					player.setHandicap(activeTournament.getMaxHDCP());
+				} else {
+					player.setHandicap(handicap);
+				}
 			}
 
-			player.setAverage(player.getLastSummation() / player.getLinesQuantity());
+			if (player.getLinesQuantity() > 0) {
+				double tempAverage = (double) player.getLastSummation() / player.getLinesQuantity();
+				String formatAverage = String.format("%.2f", tempAverage);
+				double average = Double.parseDouble(formatAverage);
+				player.setAverage(average);
+			}
 
 			playerRepository.save(player);
 		}
@@ -373,20 +381,27 @@ public class PlayerServiceImp implements IPlayerService {
 		 * if(player.getLinesQuantity() < 9) throw new Exception("INSUFICIENT_LINES");
 		 */
 
-		Tournament activeTournament = tournamentRepository.findByActive(true);
-		double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
-				* activeTournament.getAverageForHDCP();
-		int handicap = handicapDouble < 0 ? 0 : (int) handicapDouble;
+		if (player.getLinesQuantity() >= 3) {
+			Tournament activeTournament = tournamentRepository.findByActive(true);
+			double handicapDouble = (activeTournament.getPointsForHDCP() - player.getAverage())
+					* activeTournament.getAverageForHDCP();
+			int handicap = handicapDouble < 0 ? 0 : (int) (handicapDouble + 0.5);
 
-		if (handicap < activeTournament.getMinHDCP()) {
-			player.setHandicap(0);
-		} else if (handicap > activeTournament.getMaxHDCP()) {
-			player.setHandicap(activeTournament.getMaxHDCP());
-		} else {
-			player.setHandicap(handicap);
+			if (handicap < activeTournament.getMinHDCP()) {
+				player.setHandicap(0);
+			} else if (handicap > activeTournament.getMaxHDCP()) {
+				player.setHandicap(activeTournament.getMaxHDCP());
+			} else {
+				player.setHandicap(handicap);
+			}
 		}
 
-		player.setAverage(player.getLastSummation() / player.getLinesQuantity());
+		if (player.getLinesQuantity() > 0) {
+			double tempAverage = (double) player.getLastSummation() / player.getLinesQuantity();
+			String formatAverage = String.format("%.2f", tempAverage);
+			double average = Double.parseDouble(formatAverage);
+			player.setAverage(average);
+		}
 
 		playerRepository.save(player);
 
@@ -415,8 +430,6 @@ public class PlayerServiceImp implements IPlayerService {
 		logger.debug("{} - Begin", methodName);
 		Player player = playerRepository.findById(id)
 				.orElseThrow(() -> new Exception("Player does not exist with id: " + id));
-		// VOY AQUI TENGO QUE VALIDAR EL CAMBIO DE LINEAS PARA EMPAREJAR PROMEDIOS Y
-		// BACKUP
 		BackupLines backUp = backupRepository.findByPlayer(player);
 
 		int linesQuantity = (int) lines.stream().filter(line -> line > 0).count();
@@ -454,8 +467,9 @@ public class PlayerServiceImp implements IPlayerService {
 		// If some line is grater than max line, change it.
 		lines.stream().filter(line -> line > player.getMaxLine()).forEach(player::setMaxLine);
 
-		double tempAverage = (double) player.getLastSummation() / (double) player.getLinesQuantity();
-		double average = Math.round(tempAverage * 100) / 100;
+		double tempAverage = (double) player.getLastSummation() / player.getLinesQuantity();
+		String formatAverage = String.format("%.2f", tempAverage);
+		double average = Double.parseDouble(formatAverage);
 		player.setAverage(average);
 
 		playerRepository.save(player);
@@ -473,6 +487,15 @@ public class PlayerServiceImp implements IPlayerService {
 		}
 
 		backupRepository.save(backUp);
+		
+		/* Team VALIDATION */
+		Team team = player.getTeam();
+		int currentPines = team.getPines();
+		int lastPines = currentPines - (totalToRemove + (player.getHandicap() * lastPlayedLinesQuantity));
+		team.setPines(lastPines + linesSummation + (player.getHandicap() * lastPlayedLinesQuantity));
+		teamRepository.save(team);
+		/////////////////////
+
 
 		logger.debug("{} - End", methodName);
 		return ResponseEntity.ok(player);

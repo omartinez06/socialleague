@@ -472,8 +472,10 @@ public class TournamentServiceImp implements ITournamentService {
 			List<Player> players = playerRepository.findByCategory(category);
 			if (!players.isEmpty()) {
 				for (Player player : players) {
-					if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
+					if(BLIND.equals(player.getName()))
 						continue;
+					/*if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
+						continue;*/
 
 					ReportInformation dto = new ReportInformation();
 					dto.setName(player.getName() + " " + player.getLastName());
@@ -506,8 +508,10 @@ public class TournamentServiceImp implements ITournamentService {
 			List<Player> players = playerRepository.findByCategory(category);
 			if (!players.isEmpty()) {
 				for (Player player : players) {
-					if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
+					if(BLIND.equals(player.getName()))
 						continue;
+					/*if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
+						continue;*/
 
 					ReportInformation dto = new ReportInformation();
 					dto.setName(player.getName() + " " + player.getLastName());
@@ -528,6 +532,8 @@ public class TournamentServiceImp implements ITournamentService {
 		collection.addAll(reportAverage);
 		return collection;
 	}
+	
+	protected static final String BLIND = "BLIND";
 
 	public Collection<ReportDTO> getAverageReport() {
 		List<Category> categories = categoryRepository.findAll();
@@ -543,8 +549,10 @@ public class TournamentServiceImp implements ITournamentService {
 			List<Player> players = playerRepository.findByCategory(category);
 			if (!players.isEmpty()) {
 				for (Player player : players) {
-					if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
+					if(BLIND.equals(player.getName()))
 						continue;
+					/*if (tournament != null && player.getLineAverage() < tournament.getLinesAverage())
+						continue;*/
 
 					ReportInformation dto = new ReportInformation();
 					dto.setLinesAverage(player.getLineAverage());
@@ -696,6 +704,9 @@ public class TournamentServiceImp implements ITournamentService {
 				List<Player> players = playerRepository.findAllByTeam(team);
 				if (!players.isEmpty()) {
 					for (Player player : players) {
+						if(BLIND.equals(player.getName()))
+							continue;
+						
 						ReportInformationHDCP dto = new ReportInformationHDCP();
 						dto.setName(player.getName() + " " + player.getLastName());
 						dto.setLinesQuantity(player.getLinesQuantity());

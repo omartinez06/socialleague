@@ -87,7 +87,7 @@
 					<textElement textAlignment="Center" verticalAlignment="Middle">
 						<font fontName="Dyuthi" size="22"/>
 					</textElement>
-					<text><![CDATA[HDCP]]></text>
+					<text><![CDATA[Premios Clubes]]></text>
 				</staticText>
 			</frame>
 		</band>
